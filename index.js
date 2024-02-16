@@ -7,7 +7,7 @@ const libs = {
             this.mediaRecorder;
             this.encodeType = 'audio/mpeg'
             this.language = 'en',
-                this.recordingColor = 'antiquewhite'
+            this.recordingColor = 'antiquewhite'
         }
 
         // The startRecording method remains mostly unchanged until the getUserMedia.then() block
@@ -100,6 +100,7 @@ const libs = {
         textArea.style.left = x + 'px';
         textArea.style.bottom = y + 'px';
         textArea.style.zIndex = zIndex;
+        textArea.disabled=true;
         document.body.appendChild(textArea);
         setTimeout(() => {
             document.body.removeChild(textArea);
@@ -119,6 +120,7 @@ const libs = {
         document.body.appendChild(textArea);
         textArea.select();
         document.execCommand('copy');
+        textArea.disabled=true;
         //textArea.disabled=true;
         textArea.value = 'copyed to clipboard \n' + textArea.value;
         textArea.scrollTo(10000, 100000)
@@ -299,6 +301,8 @@ let dragElement = libs.dragElement;
 let Recorder = libs.Recorder;
 let writeText = libs.writeText;
 let copyToClipboard = libs.copyToClipboard;
+let showToast=libs.showToast;
+
 let moveToElement = libs.moveToElement;
 let addEventListenerForActualClick = libs.addEventListenerForActualClick;
 
@@ -312,7 +316,8 @@ let model = {
     voice_button_id: 'whisper_voice_button',
     transcribeProvider: 'lepton_whisper',
     language: '',
-    supportedInputTypeList:['text','number','tel','search','url','email',]
+    supportedInputTypeList:['text','number','tel','search','url','email',],
+
 }
 
 let view = {
@@ -382,9 +387,15 @@ let view = {
         });
         button.addEventListener('pointerdown', async (event) => {
             event.preventDefault();
+            let startTime=Date.now();
             let audioblob = await this.recorder.startRecording(this.elem.voiceButton);
-            console.log(await blobToBase64(audioblob))
-            //let transcribe = await whisperjaxws(audioblob)
+            //console.log(await blobToBase64(audioblob))
+
+            if(Date.now()-startTime<1500){
+                showToast("time too short, this will not transcribe")
+                return;
+            }
+
             let transcribe = await sendAudioToLeptonWhisperApi(audioblob)
             if (transcribe === false) {
                 console.log('transcribe failed, try alternative way')
@@ -490,10 +501,10 @@ let view = {
     }
 }
 
-setTimeout(() => {
-    view.init();
 
-}, 2000);
+view.init();
+
+
 
 
 
