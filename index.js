@@ -222,7 +222,7 @@ const libs = {
             x=Math.abs(x);
             y=Math.abs(y);
             x=Math.min(x,window.innerWidth-mElem.clientWidth)
-            y=Math.min(y,window.innerHeight-mElem.clientHeight)
+            y=Math.min(y,window.innerHeight-10-mElem.clientHeight)
 
         }
         mElem.style.left = x + 'px';
@@ -362,7 +362,7 @@ let view = {
         button.type = 'button'; // Ensure the button does not submit forms
         button.classList.add('speech-to-text-button');
 
-        button.style.top = '0';
+        button.style.top =  window.innerHeight-100 + 'px';
         button.style.left = '0';
 
         button.style.width = '40px';
