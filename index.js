@@ -7,7 +7,7 @@ const devilentLIBS = {
             this.mediaRecorder;
             this.encodeType = 'audio/mpeg'
             this.language = 'en',
-            this.recordingColor = 'antiquewhite'
+            this.recordingColor = 'lightblue'
         }
 
         // The startRecording method remains mostly unchanged until the getUserMedia.then() block
@@ -26,7 +26,7 @@ const devilentLIBS = {
                     let audioChunks = [];
                     mediaRecorder.start();
                     this.isRecording = true;
-                    targetElement.style.backgroundColor = this.recordingColor;
+                    targetElement.style.backgroundColor = 'rgba(173, 216, 230, 0.5)'
 
 
                     // // Audio context for volume analysis
@@ -71,7 +71,6 @@ const devilentLIBS = {
                             const audioBlob = new Blob(audioChunks, { type: this.encodeType });
                             targetElement.style.transform = `scale(1)`; // Next
                             targetElement.style.background = 'transparent';
-                            console.log('color', targetElement.style.background);
 
                             audioContext?.close(); // Close the audio context when done
                             mediaRecorder.stream.getTracks().forEach((track) => track.stop());
@@ -332,6 +331,7 @@ let model = {
     transcribeProvider: 'lepton_whisper',
     language: '',
     supportedInputTypeList:['text','number','tel','search','url','email',],
+    buttonBackgroundColor:"lightblue"
 
 }
 
