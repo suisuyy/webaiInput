@@ -1,5 +1,5 @@
 
-const libs = {
+const devilentLIBS = {
     Recorder: class Recorder {
         constructor(apiKey) {
             this.apiKey = apiKey;
@@ -85,8 +85,10 @@ const libs = {
                 });
         }
         stopRecording() {
-            this.mediaRecorder.stop();
             this.isRecording = false;
+            
+            this.mediaRecorder.stop();
+
         }
     },
     showToast: function showToast(text, x = 0, y = 0, w = 200, h = 100, duration = 2000, zIndex = 99999) {
@@ -139,17 +141,27 @@ const libs = {
         let rmShadeTimeout;
 
         // otherwise, move the DIV from anywhere inside the DIV:
-        elmnt.onpointerdown = dragMouseDown;
+        elmnt.addEventListener('pointerdown',e=>{
+            dragMouseDown(e);
+        }) 
 
         function dragMouseDown(e) {
+
             e = e || window.event;
+            //for touch device to move
             e.preventDefault();
+
             // get the mouse cursor position at startup:
             pos3 = e.clientX;
             pos4 = e.clientY;
-            document.onpointerup = closeDragElement;
+            document.body.addEventListener('pointermove',elementDrag
+            )
+            document.body.addEventListener('pointerup',
+                closeDragElement
+            )
+
+            
             // call a function whenever the cursor moves:
-            document.onpointermove = elementDrag;
 
             //create a shade to cover full body to stop iframe catch mouse move
             shadeDiv = document.createElement('div');
@@ -191,9 +203,12 @@ const libs = {
 
         function closeDragElement() {
             // stop moving when mouse button is released:
-            console.log('pointerup');
-            document.onpointerup = null;
-            document.onpointermove = null;
+            console.log('closeDragElement(): pointerup');
+            // document.onpointerup = null;
+            // document.onpointermove = null;
+            document.body.removeEventListener('pointermove',elementDrag);
+            document.body.removeEventListener('pointerup',closeDragElement);
+
 
             document.body.removeChild(shadeDiv);
             clearTimeout(rmShadeTimeout);
@@ -297,17 +312,17 @@ const libs = {
 }
 
 
-let dragElement = libs.dragElement;
-let Recorder = libs.Recorder;
-let writeText = libs.writeText;
-let copyToClipboard = libs.copyToClipboard;
-let showToast=libs.showToast;
+let dragElement = devilentLIBS.dragElement;
+let Recorder = devilentLIBS.Recorder;
+let writeText = devilentLIBS.writeText;
+let copyToClipboard = devilentLIBS.copyToClipboard;
+let showToast=devilentLIBS.showToast;
 
-let moveToElement = libs.moveToElement;
-let addEventListenerForActualClick = libs.addEventListenerForActualClick;
+let moveToElement = devilentLIBS.moveToElement;
+let addEventListenerForActualClick = devilentLIBS.addEventListenerForActualClick;
 
-let blobToBase64 = libs.blobToBase64;
-let playAudioBlob = libs.playAudioBlob;
+let blobToBase64 = devilentLIBS.blobToBase64;
+let playAudioBlob = devilentLIBS.playAudioBlob;
 
 
 let model = {
@@ -408,11 +423,21 @@ let view = {
 
         // });
         button.addEventListener('pointerup', () => {
+            console.log('createButton pointerup');
+
+            //add a delay , or it cannt stop properly if recording time too short
+            setTimeout(() => {
+                this.recorder.stopRecording();
+                
+            }, 500);
+
+        });
+
+        button.addEventListener('pointerover', () => {
             console.log('up, stop rec');
             this.recorder.stopRecording();
 
         });
-
         addEventListenerForActualClick(document.body, (event) => {
             if (event.target.tagName === 'INPUT') {
                 if(model.supportedInputTypeList.includes(event.target.type))
@@ -426,7 +451,7 @@ let view = {
                 moveToElement(button, event.target);
 
             }
-            console.log(event.target,event.target.isContentEditable);
+            console.log(event.target,event.target.isContentEditable?'editable':'noneditable');
         })
 
         window.addEventListener('resize',()=>{
@@ -547,7 +572,7 @@ async function sendAudioToApi(blob, targetElement) {
     }
 }
 async function sendAudioToLeptonWhisperApi(blob, language, base64prifix) {
-    let showToast = libs.showToast;
+    let showToast = devilentLIBS.showToast;
     showToast('transcribing');
 
     base64prifix = base64prifix || 'data:audio/mpeg;base64,'
