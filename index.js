@@ -42,7 +42,7 @@ const devilentLIBS = {
           audioContext = new AudioContext();
           const analyser = audioContext.createAnalyser();
           const microphone = audioContext.createMediaStreamSource(
-            mediaRecorder.stream
+            mediaRecorder.stream,
           );
           microphone.connect(analyser);
           analyser.fftSize = 512;
@@ -93,15 +93,14 @@ const devilentLIBS = {
       this.mediaRecorder?.stop();
     }
   },
-  checkValidString(str){
-
+  checkValidString(str) {
     if (str === undefined || str === null || str.trim() === "") {
       return false;
     }
     if (str === "undefined" || str === "null") {
       return false;
     }
-    return true; 
+    return true;
   },
   showToast: function showToast(
     text,
@@ -110,7 +109,7 @@ const devilentLIBS = {
     w = 200,
     h = 100,
     duration = 2000,
-    zIndex = 99999
+    zIndex = 99999,
   ) {
     const textArea = document.createElement("textarea");
     textArea.value = text;
@@ -153,7 +152,7 @@ const devilentLIBS = {
   dragElement: function dragElement(
     elmnt,
     movableElmnt = elmnt.parentElement,
-    speed = 3
+    speed = 3,
   ) {
     elmnt.style.touchAction = "none"; //need on touch devices
     var pos1 = 0,
@@ -198,7 +197,7 @@ const devilentLIBS = {
       document.body.appendChild(shadeDiv);
       rmShadeTimeout = setTimeout(() => {
         document.body.removeChild(
-          document.querySelector("#shadeDivForDragElement")
+          document.querySelector("#shadeDivForDragElement"),
         );
       }, 10000);
     }
@@ -226,7 +225,7 @@ const devilentLIBS = {
       document.body.removeEventListener("pointerup", closeDragElement);
 
       document.body.removeChild(
-        document.querySelector("#shadeDivForDragElement")
+        document.querySelector("#shadeDivForDragElement"),
       );
       //clearTimeout(rmShadeTimeout);
     }
@@ -235,7 +234,7 @@ const devilentLIBS = {
     targetElement,
     text,
     prefix = " ",
-    endfix = " "
+    endfix = " ",
   ) {
     console.log("writeText(): ", targetElement);
     if (
@@ -483,7 +482,7 @@ const devilentLIBS = {
 
       if (deltaX <= 10 && deltaY <= 10 && Date.now() - startTime < 1000) {
         console.log(
-          "Minimal mouse movement (< 10px in either direction) and short duration click detected."
+          "Minimal mouse movement (< 10px in either direction) and short duration click detected.",
         );
         handler(event);
       }
@@ -551,8 +550,8 @@ const devilentLIBS = {
       });
   },
   async leptonSimpleComplete(userText) {
-    console.log("leptonSimpleComlete(): ",userText);
-    if(devilentLIBS.checkValidString(userText)===false){
+    console.log("leptonSimpleComlete(): ", userText);
+    if (devilentLIBS.checkValidString(userText) === false) {
       return;
     }
     let response = await fetch(
@@ -573,7 +572,7 @@ const devilentLIBS = {
           max_tokens: 100000,
         }),
         method: "POST",
-      }
+      },
     );
     response = await response.json();
     let responseMessage = response?.choices[0]?.message?.content;
@@ -681,7 +680,6 @@ let view = {
     button.addEventListener("pointerup", () => {
       console.log("createButton pointerup");
       view.handler.stopRecording();
-      
     });
 
     addEventListenerForActualClick(button, (event) => {
@@ -704,7 +702,7 @@ let view = {
       }
       console.log(
         event.target,
-        event.target.isContentEditable ? "editable" : "noneditable"
+        event.target.isContentEditable ? "editable" : "noneditable",
       );
     });
 
@@ -767,7 +765,7 @@ let view = {
                 console.log(
                   "New ",
                   addedNode.id || addedNode.name,
-                  "gained focus"
+                  "gained focus",
                 );
               });
             }
@@ -836,7 +834,9 @@ let view = {
       menuItem.style.fontSize = "14px";
       menuItem.style.cursor = "pointer";
       menuItem.style.marginBottom = "10px"; // Set the margin-bottom here
+      menuItem.style.touchAction = "none";
       menuItem.textContent = textContent;
+
       //make it not change focus on input elements when click
       menuItem.addEventListener("pointerdown", (event) => {
         event.preventDefault();
@@ -889,18 +889,17 @@ let view = {
       e.preventDefault();
       try {
         const text = await navigator.clipboard.readText();
-        writeText(document.activeElement,text);
+        writeText(document.activeElement, text);
         console.log("Clipboard text:", text);
         // Your logic to process the clipboard text
-    } catch (err) {
+      } catch (err) {
         console.error("Clipboard access denied:", err);
-    }
+      }
     });
     pasteButton.addEventListener("pointerup", (e) => {
       view.handler.stopRecording();
     });
 
-  
     let askButton = createMenuItem("Ask");
     menuContainer.appendChild(askButton);
     askButton.addEventListener("pointerdown", (e) => {
@@ -1002,10 +1001,12 @@ let view = {
         console.log("transcribe failed, try alternative way");
         transcribe = await whisperjaxws(audioblob);
       }
-      let selectionString=window.getSelection().toString();
-      let userText=devilentLIBS.checkValidString(selectionString)?`"${selectionString}" ${transcribe}`:transcribe;
-      if(devilentLIBS.checkValidString(userText)===false){
-        console.log('ask(): invalid userText:', userText);
+      let selectionString = window.getSelection().toString();
+      let userText = devilentLIBS.checkValidString(selectionString)
+        ? `"${selectionString}" ${transcribe}`
+        : transcribe;
+      if (devilentLIBS.checkValidString(userText) === false) {
+        console.log("ask(): invalid userText:", userText);
         return;
       }
       devilentLIBS.displayMarkdown(userText + "\n\n please wait");
@@ -1028,18 +1029,15 @@ let view = {
       }
       writeText(document.activeElement, transcribe);
     },
-    stopRecording(safeStop=true) {
-      model.isRecording=false;
-      if(safeStop){
+    stopRecording(safeStop = true) {
+      model.isRecording = false;
+      if (safeStop) {
         setTimeout(() => {
           console.log("safeStop");
           view.recorder.stopRecording();
-          
         }, 300);
-      }
-      else{
+      } else {
         view.recorder.stopRecording();
-
       }
     },
   },
@@ -1098,7 +1096,7 @@ async function sendAudioToLeptonWhisperApi(blob, language, base64prifix) {
           input: base64prifix + (await blobToBase64(blob)),
           language: language || "",
         }),
-      }
+      },
     );
 
     if (!response.ok) {
@@ -1125,7 +1123,7 @@ async function sendAudioToLeptonWhisperApi(blob, language, base64prifix) {
 async function whisperjaxws(blob) {
   // Create a new WebSocket connection to the specified URL
   const socket = new WebSocket(
-    "wss://sanchit-gandhi-whisper-jax.hf.space/queue/join"
+    "wss://sanchit-gandhi-whisper-jax.hf.space/queue/join",
   );
 
   // Connection opened event handler
@@ -1152,7 +1150,7 @@ async function whisperjaxws(blob) {
         // Validate input values
         if (isNaN(min) || isNaN(max) || min >= max) {
           throw new Error(
-            "Invalid min or max values. min must be less than max."
+            "Invalid min or max values. min must be less than max.",
           );
         }
 
@@ -1168,7 +1166,7 @@ async function whisperjaxws(blob) {
       if (data.msg === "send_hash") {
         // The server is expecting a session hash
         socket.send(
-          JSON.stringify({ fn_index: 0, session_hash: session_hash })
+          JSON.stringify({ fn_index: 0, session_hash: session_hash }),
         );
       } else if (data.msg === "send_data") {
         // The server is ready to receive data
@@ -1185,7 +1183,7 @@ async function whisperjaxws(blob) {
             event_data: null,
             fn_index: 0,
             session_hash: session_hash,
-          })
+          }),
         );
       } else if (data.msg === "estimation") {
         // Handle queue estimation message
