@@ -93,6 +93,16 @@ const devilentLIBS = {
       this.mediaRecorder?.stop();
     }
   },
+  checkValidString(str){
+
+    if (str === undefined || str === null || str.trim() === "") {
+      return false;
+    }
+    if (str === "undefined" || str === "null") {
+      return false;
+    }
+    return true; 
+  },
   showToast: function showToast(
     text,
     x = 0,
@@ -249,68 +259,60 @@ const devilentLIBS = {
     const newlinePattern = /(?:\n\n)/g;
     const inlineCodePattern = /`(.*?)`/g;
     const codeBlockPattern = /```(\w+)?\n(.*?)```/gs;
-  
+
     let html = mdString;
-    html = '\n\n' + html;
-  
+    html = "\n\n" + html;
+
     html = html.replace(codeBlockPattern, (match, language, code) => {
       return `
           <div class="code-block">
               <button class="copy-code-btn">Copy Code</button>
               <button class="insert-code-btn">Insert Code</button>
-              <pre><code${language ? ` class="language-${language}"` : ''}>${code}</code></pre>
+              <pre><code${
+                language ? ` class="language-${language}"` : ""
+              }>${code}</code></pre>
           </div>
       `;
     });
-  
+
     // Replace inline code with <code> tags
     html = html.replace(inlineCodePattern, "<code>$1</code>");
-  
+
     // Replace headers with <h1> to <h6> tags
     html = html.replace(headerPattern, (match, content) => {
       const level = match.slice(0, match.indexOf(" ")).length;
       return `<h${level}>${content}</h${level}>`;
     });
-  
+
     // Replace bold text with <strong> tags
     html = html.replace(boldPattern, "<strong>$1</strong>");
-  
+
     // Replace links with <a> tags
     html = html.replace(linkPattern, '<a href="$2">$1</a>');
-  
+
     // Replace newlines with <br> tags
     html = html.replace(newlinePattern, "<br>");
-  
+
     targetElement.innerHTML = html;
-  
+
     // Function to copy the code to clipboard
-    function copyCode(code) {
-      navigator.clipboard
-        .writeText(code)
-        .then(() => {
-          console.log("Code copied to clipboard");
-        })
-        .catch((err) => {
-          console.error("Failed to copy code: ", err);
-        });
-    }
-  
+
     // Attach event listeners to copy and insert buttons
     const buttons = targetElement.querySelectorAll(".code-block button");
     buttons.forEach((btn) => {
       btn.addEventListener("pointerdown", (e) => {
         e.preventDefault();
-  
+
         const code = btn.parentElement.querySelector("code").innerText;
         if (btn.classList.contains("copy-code-btn")) {
-          copyCode(code);
+          copyToClipboard(code);
         } else if (btn.classList.contains("insert-code-btn")) {
           console.log("insert button down");
-          writeText(document.activeElement, code, '', '');
+          writeText(document.activeElement, code, "", "");
         }
       });
     });
-  
+
     // Add some basic styles
     targetElement.classList.add("markdown-container");
     const style = `
@@ -379,88 +381,79 @@ const devilentLIBS = {
   }
   
   `;
-  
-  document.head.insertAdjacentHTML("beforeend", style);
-  
-  // Function to copy the markdown HTML to clipboard
-  function copyToClipboard() {
-  navigator.clipboard
-  .writeText(mdString)
-  .then(() => {
-  console.log("Text copied to clipboard");
-  })
-  .catch((err) => {
-  console.error("Failed to copy text: ", err);
-  });
-  }
-  
-  // Add a copy-to-clipboard button
-  const copyButton = document.createElement("button");
-  copyButton.innerText = "Copy";
-  copyButton.onclick = copyToClipboard;
-  
-  // Add an insert-to-webpage button
-  const insertButton = document.createElement("button");
-  insertButton.innerText = "Insert";
-  insertButton.addEventListener("pointerdown", (e) => {
-  e.preventDefault();
-  writeText(document.activeElement, mdString, "", "");
-  });
-  copyButton.classList.add('copy-btn')
-  insertButton.classList.add('insert-btn')
 
-  const closeButton = document.createElement("button");
-  closeButton.innerText = "Close";
-  closeButton.addEventListener("pointerdown", (e) => {
-  e.preventDefault();
-  targetElement.remove();
-  });
-  closeButton.classList.add('copy-btn')
-  
-  let buttonContainer = document.createElement("div");
-buttonContainer.classList.add("button-container");
+    document.head.insertAdjacentHTML("beforeend", style);
 
-// Add the buttons to the container
-buttonContainer.appendChild(copyButton); // Assuming copyButton and insertButton are already created
-buttonContainer.appendChild(insertButton);
-buttonContainer.appendChild(closeButton);
+    // Add a copy-to-clipboard button
+    const copyButton = document.createElement("button");
+    copyButton.innerText = "Copy";
+    copyButton.addEventListener("pointerdown", (e) => {
+      e.preventDefault();
+      copyToClipboard(mdString);
+    });
+    // Add an insert-to-webpage button
+    const insertButton = document.createElement("button");
+    insertButton.innerText = "Insert";
+    insertButton.addEventListener("pointerdown", (e) => {
+      e.preventDefault();
+      writeText(document.activeElement, mdString, "", "");
+    });
+    copyButton.classList.add("copy-btn");
+    insertButton.classList.add("insert-btn");
 
-// Get the parent element (replace with the actual parent element's selector)
-const parentElement = targetElement;
+    const closeButton = document.createElement("button");
+    closeButton.innerText = "Close";
+    closeButton.addEventListener("pointerdown", (e) => {
+      e.preventDefault();
+      targetElement.remove();
+    });
+    closeButton.classList.add("copy-btn");
 
-// Make the container width same as parent
-buttonContainer.style.width = '100%'
+    let buttonContainer = document.createElement("div");
+    buttonContainer.classList.add("button-container");
 
-// Make the container color darker than parent
-buttonContainer.style.backgroundColor = parentElement.style.backgroundColor;
-buttonContainer.style.color = "lighten(" + buttonContainer.style.backgroundColor + ", 20%)"; // Adjust lighten() value as needed
+    // Add the buttons to the container
+    buttonContainer.appendChild(copyButton); // Assuming copyButton and insertButton are already created
+    buttonContainer.appendChild(insertButton);
+    buttonContainer.appendChild(closeButton);
 
-// Append the container to the parent
+    // Get the parent element (replace with the actual parent element's selector)
+    const parentElement = targetElement;
 
-  targetElement.prepend(buttonContainer);
-  dragElement(buttonContainer,targetElement);
+    // Make the container width same as parent
+    buttonContainer.style.width = "100%";
 
+    // Make the container color darker than parent
+    buttonContainer.style.backgroundColor = parentElement.style.backgroundColor;
+    buttonContainer.style.color =
+      "lighten(" + buttonContainer.style.backgroundColor + ", 20%)"; // Adjust lighten() value as needed
+
+    // Append the container to the parent
+
+    targetElement.prepend(buttonContainer);
+    dragElement(buttonContainer, targetElement);
   },
-  displayMarkdown(mdString){
-    let containerID='ai_input_md_dispalyer'
-    let container=document.getElementById(containerID) || document.createElement('div');
-    container.id=containerID;
-    document.body.appendChild(container);
-    
-    container.style.zIndex='100000';
-    container.style.position="fixed";
-    container.style.top="20vh";
-    container.style.left="0";
-    container.style.height="400px";
-    container.style.width="80vw";
-    container.style.backgroundColor="rgba{20,20,50,1}";
+  displayMarkdown(mdString) {
+    let containerID = "ai_input_md_dispalyer";
 
+    let container = document.getElementById(containerID);
+    if (container === null) {
+      container =
+        document.getElementById(containerID) || document.createElement("div");
+      container.id = containerID;
+      document.body.appendChild(container);
 
-    devilentLIBS.renderMarkdown(mdString,container);
+      container.style.zIndex = "100000";
+      container.style.position = "fixed";
+      container.style.top = "20vh";
+      container.style.left = "0";
+      container.style.height = "400px";
+      container.style.width = "80vw";
+      container.style.backgroundColor = "rgba{20,20,50,1}";
+    }
 
-  }
-  ,
-
+    devilentLIBS.renderMarkdown(mdString, container);
+  },
   moveToElement: (mElem, targetElement, alwayInWindow = true) => {
     const rect = targetElement.getBoundingClientRect();
     // The rect object contains the position information
@@ -557,8 +550,11 @@ buttonContainer.style.color = "lighten(" + buttonContainer.style.backgroundColor
         console.error("Error playing audio:", error);
       });
   },
-  async leptonSimpleComplete(text) {
-    text = `"${window.getSelection().toString()}" \n ${text}`;
+  async leptonSimpleComplete(userText) {
+    console.log("leptonSimpleComlete(): ",userText);
+    if(devilentLIBS.checkValidString(userText)===false){
+      return;
+    }
     let response = await fetch(
       devilentLIBS.config.corsproxy_url +
         devilentLIBS.config.lepton_api.completion_url.mixtral,
@@ -569,7 +565,7 @@ buttonContainer.style.color = "lighten(" + buttonContainer.style.backgroundColor
           Authorization: `Bearer ${devilentLIBS.config.lepton_api.api_token[0]}`,
         },
         body: JSON.stringify({
-          messages: [{ role: "user", content: text }],
+          messages: [{ role: "user", content: userText }],
           model: "mixtral-8x7b",
           tools: [],
           temperature: 0.7,
@@ -584,7 +580,7 @@ buttonContainer.style.color = "lighten(" + buttonContainer.style.backgroundColor
     console.log("[leptonComplete(text)]", responseMessage);
     let mdContainer = document.createElement("div");
     document.body.appendChild(mdContainer);
-    devilentLIBS.displayMarkdown(text+'\n\n'+responseMessage, mdContainer);
+    devilentLIBS.displayMarkdown(userText + "\n\n" + responseMessage);
     return response;
   },
 };
@@ -684,11 +680,8 @@ let view = {
     // });
     button.addEventListener("pointerup", () => {
       console.log("createButton pointerup");
-
-      //add a delay , or it cannt stop properly if recording time too short
-      setTimeout(() => {
-        this.recorder.stopRecording();
-      }, 300);
+      view.handler.stopRecording();
+      
     });
 
     addEventListenerForActualClick(button, (event) => {
@@ -796,9 +789,11 @@ let view = {
     if (menuContainer) {
       // menu already exists, update its position
       // Adjust position to keep the menu inside the window
-      menuContainer.style.left = Math.min(x, windowWidth - menuContainer.offsetWidth) + "px";
-      menuContainer.style.top = Math.min(y, windowHeight - menuContainer.offsetHeight) + "px";
-      menuContainer.style.zIndex='99999999'
+      menuContainer.style.left =
+        Math.min(x, windowWidth - menuContainer.offsetWidth) + "px";
+      menuContainer.style.top =
+        Math.min(y, windowHeight - menuContainer.offsetHeight) + "px";
+      menuContainer.style.zIndex = "99999999";
 
       return;
     }
@@ -806,7 +801,7 @@ let view = {
     // create menu container
     menuContainer = document.createElement("div");
     menuContainer.id = "my-menu"; // add an id to the menu
-    menuContainer.style.zIndex='99999999'
+    menuContainer.style.zIndex = "99999999";
 
     menuContainer.style.position = "fixed";
     menuContainer.style.backgroundColor = "white";
@@ -878,19 +873,41 @@ let view = {
       view.handler.stopRecording();
     });
 
-    let EnterButton = createMenuItem("Enter");
-    menuContainer.appendChild(EnterButton);
-    EnterButton.addEventListener("click", () => {});
-
-    let askButton = createMenuItem("Ask");
-    menuContainer.appendChild(askButton);
-    askButton.addEventListener("pointerdown", () => {
-
-      view.handler.ask();
+    let copyButton = createMenuItem("Copy");
+    menuContainer.appendChild(copyButton);
+    copyButton.addEventListener("pointerdown", (e) => {
+      e.preventDefault();
+      copyToClipboard(window.getSelection().toString());
+    });
+    copyButton.addEventListener("pointerup", (e) => {
+      view.handler.stopRecording();
     });
 
-    askButton.addEventListener("pointerup", () => {
+    let pasteButton = createMenuItem("Paste");
+    menuContainer.appendChild(pasteButton);
+    pasteButton.addEventListener("pointerdown", async (e) => {
+      e.preventDefault();
+      try {
+        const text = await navigator.clipboard.readText();
+        writeText(document.activeElement,text);
+        console.log("Clipboard text:", text);
+        // Your logic to process the clipboard text
+    } catch (err) {
+        console.error("Clipboard access denied:", err);
+    }
+    });
+    pasteButton.addEventListener("pointerup", (e) => {
+      view.handler.stopRecording();
+    });
 
+  
+    let askButton = createMenuItem("Ask");
+    menuContainer.appendChild(askButton);
+    askButton.addEventListener("pointerdown", (e) => {
+      e.preventDefault();
+      view.handler.ask();
+    });
+    askButton.addEventListener("pointerup", () => {
       view.handler.stopRecording();
     });
     // add menu to the body
@@ -969,14 +986,14 @@ let view = {
   },
 
   handler: {
-    async ask(text) {
+    async ask() {
       let startTime = Date.now();
       let audioblob = await view.recorder.startRecording(view.elem.voiceButton);
       //console.log(await blobToBase64(audioblob))
 
       if (Date.now() - startTime < model.minimalRecordTime) {
         showToast("time too short, this will not transcribe");
-        devilentLIBS.leptonSimpleComplete();
+        devilentLIBS.leptonSimpleComplete(window.getSelection().toString());
         return;
       }
 
@@ -985,7 +1002,14 @@ let view = {
         console.log("transcribe failed, try alternative way");
         transcribe = await whisperjaxws(audioblob);
       }
-      devilentLIBS.leptonSimpleComplete(transcribe);
+      let selectionString=window.getSelection().toString();
+      let userText=devilentLIBS.checkValidString(selectionString)?`"${selectionString}" ${transcribe}`:transcribe;
+      if(devilentLIBS.checkValidString(userText)===false){
+        console.log('ask(): invalid userText:', userText);
+        return;
+      }
+      devilentLIBS.displayMarkdown(userText + "\n\n please wait");
+      devilentLIBS.leptonSimpleComplete(userText);
     },
     async startRecording(event) {
       let startTime = Date.now();
@@ -1004,8 +1028,19 @@ let view = {
       }
       writeText(document.activeElement, transcribe);
     },
-    stopRecording() {
-      view.recorder.stopRecording();
+    stopRecording(safeStop=true) {
+      model.isRecording=false;
+      if(safeStop){
+        setTimeout(() => {
+          console.log("safeStop");
+          view.recorder.stopRecording();
+          
+        }, 300);
+      }
+      else{
+        view.recorder.stopRecording();
+
+      }
     },
   },
 };
@@ -1198,6 +1233,5 @@ async function sendAudioToCFWhisperApi(blob) {
     console.error("Error sending audio to the API:", error);
   }
 }
-
 
 console.log("end script");
