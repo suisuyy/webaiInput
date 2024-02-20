@@ -17,9 +17,26 @@ https://5173-01hm8s5jycsmrc8k2gbqz5e1wf.cloudspaces.litng.ai/
     <input />
 
     <input />
+    <div id='editableDiv'>
+        <div>
+            <div>
+                this  div, his grandparen is editable, so he is editable too
+            </div>
+        </div>
+    </div>
 
 </body>
 <!-- <script src="./transcribe.js" ></script> -->
+<script>
+    // Get the div element
+const div = document.getElementById("editableDiv");
+
+// Make the div element editable
+div.contentEditable = true;
+
+
+</script>
+
 <script src="./index.js" type="module"></script>
 
 </html>

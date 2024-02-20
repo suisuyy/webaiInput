@@ -1,3 +1,6 @@
+let startButton = document.querySelector("#start");
+let stopButton = document.querySelector("#stop");
+
 function simulateKeyPress(character) {
   // Get the element where you want to simulate the keypress event
   var element = document.activeElement;
@@ -40,7 +43,16 @@ function simulateKeyPress(character) {
 setInterval(() => {
   //console.log(document.activeElement)
   //simulateKeyPress('a');
+  // let res = document.execCommand("insertText", false, `test insert`);
+  // console.log(res);
 }, 2000);
 
-let a = 1;
-let b = 2;
+stopButton.addEventListener("pointerdown", (e) => {
+  e.preventDefault();
+});
+stopButton.addEventListener("pointerup", (e) => {
+  e.preventDefault();
+});
+stopButton.addEventListener("click", (e) => {
+  e.preventDefault();
+});

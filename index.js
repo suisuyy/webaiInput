@@ -102,6 +102,15 @@ const devilentLIBS = {
     }
     return true;
   },
+  isEditableElement: function isEditableElement(element) {
+    while (element) {
+      if (element.contentEditable === "true") {
+        return true;
+      }
+      element = element.parentElement;
+    }
+    return false;
+  },
   showToast: function showToast(
     text,
     x = 0,
@@ -148,6 +157,28 @@ const devilentLIBS = {
     setTimeout(() => {
       document.body.removeChild(textArea);
     }, 4000);
+  },
+
+  writeText: function writeText(
+    targetElement,
+    text,
+    prefix = " ",
+    endfix = " ",
+  ) {
+    console.log("writeText(): ", targetElement);
+    if (
+      targetElement.tagName === "INPUT" ||
+      targetElement.tagName === "TEXTAREA" ||
+      devilentLIBS.isEditableElement(targetElement) === true
+    ) {
+      document.execCommand("insertText", false, `${prefix}${text}${endfix}`);
+      targetElement.scrollTo(100000, 1000000);
+    } else {
+      document.execCommand("insertText", false, `${prefix}${text}${endfix}`);
+      copyToClipboard(text);
+
+      // targetElement.value += ' ' + text;
+    }
   },
   dragElement: function dragElement(
     elmnt,
@@ -230,26 +261,7 @@ const devilentLIBS = {
       //clearTimeout(rmShadeTimeout);
     }
   },
-  writeText: function writeText(
-    targetElement,
-    text,
-    prefix = " ",
-    endfix = " ",
-  ) {
-    console.log("writeText(): ", targetElement);
-    if (
-      targetElement.tagName === "INPUT" ||
-      targetElement.tagName === "TEXTAREA" ||
-      targetElement.isContentEditable === true
-    ) {
-      document.execCommand("insertText", false, `${prefix}${text}${endfix}`);
-      targetElement.scrollTo(100000, 1000000);
-    } else {
-      copyToClipboard(text);
 
-      // targetElement.value += ' ' + text;
-    }
-  },
   renderMarkdown(mdString, targetElement) {
     // Extend regex patterns to include inline code and code blocks
     const headerPattern = /^#+\s*(.+)$/gm;
@@ -696,13 +708,15 @@ let view = {
         }
       } else if (
         event.target.tagName === "TEXTAREA" ||
-        event.target.isContentEditable === true
+        devilentLIBS.isEditableElement(event.target) === true
       ) {
         moveToElement(button, event.target);
       }
       console.log(
         event.target,
-        event.target.isContentEditable ? "editable" : "noneditable",
+        devilentLIBS.isEditableElement(event.target)
+          ? "editable"
+          : "noneditable",
       );
     });
 
@@ -910,6 +924,11 @@ let view = {
       view.handler.stopRecording();
     });
     // add menu to the body
+
+    menuContainer.style.left =
+      Math.min(x, windowWidth - menuContainer.offsetWidth) + "px";
+    menuContainer.style.top =
+      Math.min(y, windowHeight - menuContainer.offsetHeight) + "px";
     document.body.appendChild(menuContainer);
   },
 
