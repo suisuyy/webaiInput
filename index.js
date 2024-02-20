@@ -1054,7 +1054,7 @@ let view = {
         setTimeout(() => {
           console.log("safeStop");
           view.recorder.stopRecording();
-        }, 300);
+        }, 500);
       } else {
         view.recorder.stopRecording();
       }
