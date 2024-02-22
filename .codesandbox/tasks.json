@@ -14,7 +14,7 @@
       "command": "npx -y vite",
       "runAtStart": true,
       "preview": {
-        "port": 5174
+        "port": 5173
       }
     }
   }

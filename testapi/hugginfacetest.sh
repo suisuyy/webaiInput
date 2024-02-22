@@ -10,14 +10,15 @@ curl https://api-inference.huggingface.co/models/gpt2 \
 echo audio test
 curl https://api-inference.huggingface.co/models/openai/whisper-large-v3 \
         -X POST \
-        --data-binary '@gmenjp.wav' \
+        --data-binary '@gmzh.mp3' \
         -H "Authorization: Bearer ${API_TOKEN}"
-
-
-curl https://api-inference.huggingface.co/models/distil-whisper/distil-large-v2 \
+curl https://api-inference.huggingface.co/models/openai/whisper-large-v3 \
         -X POST \
-        --data-binary '@gmenjp.wav' \
+        --data-binary '@gmenjp.mp3' \
         -H "Authorization: Bearer ${API_TOKEN}"
+
+
+
 
         
 

@@ -38,37 +38,6 @@ https://5173-01hm8s5jycsmrc8k2gbqz5e1wf.cloudspaces.litng.ai/test.html
 <script>
     
 
-    let rec=new Recorder();
-
     
-
-
-    document.querySelector('#start').addEventListener('click',async ()=>{
-
-        console.log('start');
-        let blob=await rec.startRecording(stopButton)
-        
-//        rec.startRecording(document.body,playAudioBlob)    
-  //      rec.startRecording(document.body,blobToBase64)    
-
-        console.log('got blob',blob)
-        playAudioBlob(blob)
-        console.log(await blobToBase64(blob) );
-        sendAudioToLeptonWhisperApi(blob);
-        //let transcribe=await whisperjaxws(blob);
-
-    })
-
-
-    
-    document.querySelector('#stop').addEventListener('click',()=>{
-        rec.stopRecording();
-
-    })
-
-    document.body.addEventListener('focus',()=>{
-        console.log('focus');
-    })
-
 </script>
 </html>

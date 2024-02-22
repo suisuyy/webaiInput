@@ -111,6 +111,30 @@ const devilentLIBS = {
     }
     return false;
   },
+  disableSelect: function disableSelect(element) {
+    element.style.userSelect = "none";
+    // element.style.webkitUserSelect = "none";
+    // element.style.MozUserSelect = "none";
+    // element.style.msUserSelect = "none";
+    // element.style.oUserSelect = "none";
+
+    // element.addEventListener("selectstart", (e) => {
+    //   e.preventDefault();
+    // });
+
+    element.addEventListener("pointerdown", (e) => {
+      e.preventDefault();
+    });
+    // element.addEventListener("pointerup", (e) => {
+    //   e.preventDefault();
+    //   e.stopPropagation();
+    // });
+    // element.addEventListener("click", (e) => {
+    //   e.stopImmediatePropagation();
+    //   e.preventDefault();
+    //   e.stopPropagation();
+    // });
+  },
   showToast: function showToast(
     text,
     x = 0,
@@ -813,7 +837,7 @@ let view = {
     // create menu container
     menuContainer = document.createElement("div");
     menuContainer.id = "my-menu"; // add an id to the menu
-    menuContainer.style.zIndex = "99999999";
+    menuContainer.style.zIndex = "99999";
 
     menuContainer.style.position = "fixed";
     menuContainer.style.backgroundColor = "white";
@@ -839,6 +863,7 @@ let view = {
     menuContainer.style.flexDirection = "column";
     menuContainer.style.alignItems = "flex-start";
     menuContainer.style.padding = "10px";
+    devilentLIBS.disableSelect(menuContainer);
 
     // Function to create a menu item
     function createMenuItem(textContent) {
@@ -851,21 +876,18 @@ let view = {
       menuItem.style.touchAction = "none";
       menuItem.textContent = textContent;
 
-      //make it not change focus on input elements when click
-      menuItem.addEventListener("pointerdown", (event) => {
-        event.preventDefault();
-      });
-
       return menuItem;
     }
 
     // create remove menu item
     const removeMenuItem = createMenuItem("Remove Menu");
-    removeMenuItem.addEventListener("click", () => menuContainer.remove());
+    removeMenuItem.addEventListener("pointerdown", () =>
+      menuContainer.remove(),
+    );
     menuContainer.appendChild(removeMenuItem);
 
     const closeButton = createMenuItem("Close");
-    closeButton.addEventListener("click", () => {
+    closeButton.addEventListener("pointerdown", () => {
       if (confirm("remove the AI tool now?")) {
         view.elem.voiceButton.remove();
         menuContainer.remove();
@@ -876,14 +898,14 @@ let view = {
     // create start menu item
     const startMenuItem = createMenuItem("Start");
     menuContainer.appendChild(startMenuItem);
-    startMenuItem.addEventListener("click", () => {
+    startMenuItem.addEventListener("pointerdown", () => {
       view.handler.startRecording();
     });
 
     // create stop menu item
     const stopMenuItem = createMenuItem("Stop");
     menuContainer.appendChild(stopMenuItem);
-    stopMenuItem.addEventListener("click", () => {
+    stopMenuItem.addEventListener("pointerdown", () => {
       view.handler.stopRecording();
     });
 
@@ -891,10 +913,7 @@ let view = {
     menuContainer.appendChild(copyButton);
     copyButton.addEventListener("pointerdown", (e) => {
       e.preventDefault();
-      copyToClipboard(window.getSelection().toString());
-    });
-    copyButton.addEventListener("pointerup", (e) => {
-      view.handler.stopRecording();
+      document.execCommand("copy");
     });
 
     let pasteButton = createMenuItem("Paste");
@@ -1222,20 +1241,72 @@ async function whisperjaxws(blob) {
 }
 
 async function sendAudioToCFWhisperApi(blob) {
+  API_TOKEN = "8jqpB8mkkVGSbTeZl4wGnsx12xZefAB_y9iaORm3";
+  ACCOUNT_ID = "9a90f9962da40fb826ad9666e4ed8ef0";
+
   try {
-    const formData = new FormData();
-    formData.append("file", blob);
+    const audioData = await blob.arrayBuffer();
+
+    // const formData = new FormData();
+    // formData.append("file", audioData);
     //formData.append('model', 'whisper-1');
 
     // You need to replace the URL and headers with the ones provided by your online API
-    const response = await fetch(`${API_URL}/v1/audio/transcriptions`, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${this.apiKey}`,
-        // Add other headers required by the API
+    const response = await fetch(
+      `https://corsp.suisuy.eu.org/?https://api.cloudflare.com/client/v4/accounts/${ACCOUNT_ID}/ai/run/@cf/openai/whisper`,
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${API_TOKEN}`,
+          // Add other headers required by the API
+        },
+        body: audioData,
       },
-      body: formData,
-    });
+    );
+
+    if (!response.ok) {
+      throw new Error(`Error from API: ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    console.log(data);
+    console.log(data.result.text);
+    // You'll need to access the correct property from the response JSON based on the API's response format
+    //targetElement.value = data.results.channels[0].alternatives[0].transcript;
+    if (data?.result?.text) {
+      return { text: data.result.text };
+    } else {
+      return false;
+    }
+  } catch (error) {
+    console.error("Error sending audio to the API:", error);
+  }
+  return false;
+}
+
+async function sendAudioToHFWhisperApi(blob) {
+  API_TOKEN = "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";
+  ACCOUNT_ID = "9a90f9962da40fb826ad9666e4ed8ef0";
+
+  try {
+    const audioData = await blob.arrayBuffer();
+
+    // const formData = new FormData();
+    // formData.append("file", audioData);
+    //formData.append('model', 'whisper-1');
+
+    // You need to replace the URL and headers with the ones provided by your online API
+    const response = await fetch(
+      `https://corsp.suisuy.eu.org/?https://api-inference.huggingface.co/models/openai/whisper-large-v3`,
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${API_TOKEN}`,
+          // Add other headers required by the API
+        },
+        body: audioData,
+      },
+    );
 
     if (!response.ok) {
       throw new Error(`Error from API: ${response.statusText}`);
@@ -1245,10 +1316,15 @@ async function sendAudioToCFWhisperApi(blob) {
     console.log(data);
     // You'll need to access the correct property from the response JSON based on the API's response format
     //targetElement.value = data.results.channels[0].alternatives[0].transcript;
-    return data;
+    if (data?.text) {
+      return { text: data.text };
+    } else {
+      return false;
+    }
   } catch (error) {
     console.error("Error sending audio to the API:", error);
   }
+  return false;
 }
 
 console.log("end script");
