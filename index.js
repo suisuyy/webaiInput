@@ -34,7 +34,7 @@ const devilentLIBS = {
           let audioChunks = [];
           mediaRecorder.start();
           this.isRecording = true;
-          targetElement.style.backgroundColor = "rgba(173, 216, 230, 0.5)";
+          targetElement.style.backgroundColor = "rgba(173, 216, 230, 0.3)";
 
           // // Audio context for volume analysis
           let volumeInterval;
@@ -140,14 +140,14 @@ const devilentLIBS = {
     x = 0,
     y = 0,
     w = 200,
-    h = 100,
+    h = 0,
     duration = 2000,
-    zIndex = 99999,
+    zIndex = 9999,
   ) {
     const textArea = document.createElement("textarea");
     textArea.value = text;
     textArea.style.width = w + "px";
-    textArea.style.height = h + "px";
+    textArea.style.height = h === 0 ? "auto" : h + "px";
     textArea.style.borderWidth = "0";
     textArea.style.outline = "none";
     textArea.style.position = "fixed";
@@ -267,8 +267,8 @@ const devilentLIBS = {
       // console.log(pos1,pos2,pos3,pos4)
       // set the element's new position:
       movableElmnt.style.position = "fixed";
-      movableElmnt.style.top = e.clientY - movableElmnt.clientHeight / 2 + "px";
-      movableElmnt.style.left = e.clientX - movableElmnt.clientWidth / 2 + "px";
+      movableElmnt.style.top = e.clientY - elmnt.clientHeight / 2 + "px";
+      movableElmnt.style.left = e.clientX - elmnt.clientWidth / 2 + "px";
     }
 
     function closeDragElement() {
@@ -357,10 +357,11 @@ const devilentLIBS = {
           line-height: 1.6;
           max-width: 800px;
           margin: 0 auto;
-          padding: 20px;
+          padding: 0px;
           background-color: azure;
           overflow:auto;
-          box-shadow: 0 10px 9px rgba(0, 0, 0, 0.2);
+          box-shadow: 0px 0px 50px rgba(0, 0, 0, 0.4);
+          
         }
         .code-block {
           position: relative;
@@ -480,9 +481,9 @@ const devilentLIBS = {
 
       container.style.zIndex = "100000";
       container.style.position = "fixed";
-      container.style.top = "20vh";
+      container.style.bottom = "0";
       container.style.left = "0";
-      container.style.height = "400px";
+      container.style.height = "40vh";
       container.style.width = "80vw";
       container.style.backgroundColor = "rgba{20,20,50,1}";
     }
@@ -689,6 +690,7 @@ let view = {
     button.style.width = "40px";
     button.style.height = button.style.width;
     button.style.fontSize = "30px";
+    button.style.padding = "0";
 
     button.style.border = "0px";
     button.style.color = "blue";
@@ -866,7 +868,7 @@ let view = {
     devilentLIBS.disableSelect(menuContainer);
 
     // Function to create a menu item
-    function createMenuItem(textContent) {
+    function createMenuItem(textContent, handler) {
       const menuItem = document.createElement("button");
       menuItem.style.backgroundColor = "transparent";
       menuItem.style.border = "none";
@@ -875,7 +877,12 @@ let view = {
       menuItem.style.marginBottom = "10px"; // Set the margin-bottom here
       menuItem.style.touchAction = "none";
       menuItem.textContent = textContent;
+      menuItem.addEventListener("pointerdown", (event) => {
+        event.preventDefault();
+        handler();
+      });
 
+      menuContainer.appendChild(menuItem);
       return menuItem;
     }
 
@@ -885,6 +892,8 @@ let view = {
       menuContainer.remove(),
     );
     menuContainer.appendChild(removeMenuItem);
+
+    let currentButton;
 
     const closeButton = createMenuItem("Close");
     closeButton.addEventListener("pointerdown", () => {
@@ -914,6 +923,13 @@ let view = {
     copyButton.addEventListener("pointerdown", (e) => {
       e.preventDefault();
       document.execCommand("copy");
+      showToast("Copied to clipboard");
+    });
+
+    createMenuItem("Cut", () => {
+      document.execCommand("copy");
+      document.execCommand("delete");
+      showToast("Cut to clipboard");
     });
 
     let pasteButton = createMenuItem("Paste");
@@ -929,8 +945,12 @@ let view = {
         console.error("Clipboard access denied:", err);
       }
     });
-    pasteButton.addEventListener("pointerup", (e) => {
-      view.handler.stopRecording();
+
+    let enterButton = createMenuItem("Enter");
+    menuContainer.appendChild(enterButton);
+    enterButton.addEventListener("pointerdown", (e) => {
+      e.preventDefault();
+      document.execCommand("insertText", false, "\n");
     });
 
     let askButton = createMenuItem("Ask");
@@ -939,6 +959,7 @@ let view = {
       e.preventDefault();
       view.handler.ask();
     });
+
     askButton.addEventListener("pointerup", () => {
       view.handler.stopRecording();
     });

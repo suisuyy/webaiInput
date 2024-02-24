@@ -6,28 +6,69 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
     <style>
-        #textarea2{
-            overflow: hidden;
-        }
+        
     </style>
 </head>
 <body>
     <h1>test</h1>
-    <pre>
-https://5173-01hm8s5jycsmrc8k2gbqz5e1wf.cloudspaces.litng.ai/test.html
-
-    </pre>
+    
     <br><button id="start">start</button>
     <button id="stop">stop</button>
+    <button id="testButton">test</button>
+
     <button>else</button> <br>
+    <input id="fileinput" type="file" /> <br>
+
     
-    <textarea id="textarea1" name="testtextarea" id="testtextarea " cols="30" rows="10"></textarea> <br>
-    <textarea id="textarea2" name="testtextarea" id="testtextarea " cols="300" rows="10"></textarea> <br>
+    <textarea id="textarea1" name="testtextarea"  style="width:100%;height:20vh;"  ></textarea> <br>
+    <textarea id="textarea2" name="testtextarea"  style="width:100%;height:20vh;"  ></textarea> <br>
 
     <input id="input1" type="text" placeholder="input1"> <br>
     <input id="input2" type="number" placeholder="input2" > <br>
 
-    <input id="fileinput" type="file" /> <br>
+
+    <div id='editableDiv' editable>
+        <div>
+            <div>
+                this  div, his grandparen is editable, so he is editable too
+            </div>
+        </div>
+    </div>
+    <script>
+    const div = document.getElementById("editableDiv");
+    div.contentEditable = true;
+    </script>
+
+
+
+
+    <textarea id="textarea2" name="testtextarea"  style="width:100%;height:90vh;"  ></textarea> <br>
+
+    <pre>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    </pre>
     
 
 </body>

@@ -1,80 +1,84 @@
 let startButton = document.querySelector("#start");
 let stopButton = document.querySelector("#stop");
+let testButton = document.querySelector("#testButton");
+
 let textarea = document.querySelector("textarea");
+const fileInput = document.getElementById("fileinput");
+let editableDiv = document.querySelector("#editableDiv");
+editableDiv.isContentEditable;
 
-function simulateKeyPress(character) {
-  // Get the element where you want to simulate the keypress event
-  var element = document.activeElement;
+devilentLIBS.disableSelect(startButton);
+devilentLIBS.disableSelect(stopButton);
+devilentLIBS.disableSelect(testButton);
 
-  // Create a new event for keydown
-  var keydownEvent = new KeyboardEvent("keydown", {
-    key: character,
-    keyCode: character.charCodeAt(0), // Deprecated, but may be needed for older browsers
-    code: "Key" + character.toUpperCase(), // Like 'KeyA' for 'a', 'KeyB' for 'b', etc.
-    which: character.charCodeAt(0), // Deprecated, but may be needed for older browsers
-    shiftKey: false,
-    ctrlKey: false,
-    altKey: false,
-    metaKey: false,
-    bubbles: true,
-    cancelable: true,
-  });
+function deletePreviousWord(inputElement) {
+  const cursorPosition = inputElement.selectionStart;
+  const selectionLength = inputElement.selectionEnd - cursorPosition;
+  const inputValue = inputElement.value;
 
-  // Dispatch the keydown event
-  element.dispatchEvent(keydownEvent);
+  if (selectionLength > 0) {
+    // Delete the selected text
+    const newValue =
+      inputValue.slice(0, cursorPosition) +
+      inputValue.slice(inputElement.selectionEnd);
+    inputElement.value = newValue;
+    inputElement.setSelectionRange(cursorPosition, cursorPosition); // Set cursor after deletion
+  } else {
+    // Find the start and end indices of the previous word
+    let start = cursorPosition - 1;
+    while (start >= 0 && /\s/.test(inputValue[start])) {
+      start--;
+    }
+    while (start >= 0 && !/\s/.test(inputValue[start])) {
+      start--;
+    }
+    start++; // Adjust for the last space
 
-  // Create a new event for keyup
-  var keyupEvent = new KeyboardEvent("keyup", {
-    key: character,
-    keyCode: character.charCodeAt(0), // Deprecated, but may be needed for older browsers
-    code: "Key" + character.toUpperCase(), // Like 'KeyA' for 'a', 'KeyB' for 'b', etc.
-    which: character.charCodeAt(0), // Deprecated, but may be needed for older browsers
-    shiftKey: false,
-    ctrlKey: false,
-    altKey: false,
-    metaKey: false,
-    bubbles: true,
-    cancelable: true,
-  });
+    // Delete the previous word
+    const wordToDelete = inputValue.slice(start, cursorPosition);
+    const newValue =
+      inputValue.slice(0, start) + inputValue.slice(cursorPosition);
+    inputElement.value = newValue;
+    inputElement.setSelectionRange(start, start); // Set cursor after deletion
+  }
 
-  // Dispatch the keyup event
-  element.dispatchEvent(keyupEvent);
+  // Optional: Trigger an input event to notify other listeners
+  const inputEvent = new Event("input", { bubbles: true, cancelable: true });
+  inputElement.dispatchEvent(inputEvent);
 }
 
-setInterval(() => {
-  //console.log(document.activeElement)
-  //simulateKeyPress('a');
-  // let res = document.execCommand("insertText", false, `test insert`);
-  // console.log(res);
-}, 2000);
+testButton.addEventListener("pointerdown", () => {
+  deletePreviousWord(document.activeElement);
+  //
+});
 
-function disableSelect(element) {
-  element.style.userSelect = "none";
-  // element.style.webkitUserSelect = "none";
-  // element.style.MozUserSelect = "none";
-  // element.style.msUserSelect = "none";
-  // element.style.oUserSelect = "none";
+function playandTranscribe(blob) {
+  logIt("got blob", blob);
+  playAudioBlob(blob);
 
-  // element.addEventListener("selectstart", (e) => {
-  //   e.preventDefault();
-  // });
+  function dipslayResult(text, name) {
+    textarea.value = name + ": " + text + "\n\n" + textarea.value;
+  }
 
-  element.addEventListener("pointerdown", (e) => {
-    e.preventDefault();
-  });
-  // element.addEventListener("pointerup", (e) => {
-  //   e.preventDefault();
-  //   e.stopPropagation();
-  // });
-  // element.addEventListener("click", (e) => {
-  //   e.stopImmediatePropagation();
-  //   e.preventDefault();
-  //   e.stopPropagation();
-  // });
+  setTimeout(async () => {
+    let response = await whisperjaxws(blob);
+    dipslayResult(response, "whisperjaxws");
+  }, 85);
+
+  setTimeout(async () => {
+    let response = await sendAudioToLeptonWhisperApi(blob);
+    dipslayResult(response, "leptonwhisperapi");
+  }, 90);
+  setTimeout(async () => {
+    let response = await sendAudioToHFWhisperApi(blob);
+    dipslayResult(response.text, "hfwhisperapi");
+  }, 100);
+  setTimeout(async () => {
+    let response = await sendAudioToCFWhisperApi(blob);
+    dipslayResult(response.text, "cfwhisperapi");
+  }, 110);
 }
 
-disableSelect(startButton);
-disableSelect(stopButton);
 let rec = new Recorder();
 
 document.querySelector("#start").addEventListener("click", async () => {
@@ -85,21 +89,20 @@ document.querySelector("#start").addEventListener("click", async () => {
   //        rec.startRecording(document.body,playAudioBlob)
   //      rec.startRecording(document.body,blobToBase64)
 
-  console.log("got blob", blob);
-  playAudioBlob(blob);
-  // console.log(await blobToBase64(blob) );
-  // sendAudioToLeptonWhisperApi(blob);
-  //let transcribe=await whisperjaxws(blob);
-  setTimeout(async () => {
-    let response = await sendAudioToHFWhisperApi(blob);
-    textarea.value = "   \n" + textarea.value + "hg: " + response.text;
-  }, 100);
-  setTimeout(async () => {
-    let response = await sendAudioToCFWhisperApi(blob);
-    textarea.value = "   \n" + textarea.value + "CF: " + response.text;
-  }, 110);
+  playandTranscribe(blob);
 });
 
 document.querySelector("#stop").addEventListener("click", () => {
   rec.stopRecording();
+});
+
+fileInput.addEventListener("change", function (event) {
+  const file = event.target.files[0];
+  if (file) {
+    console.log("File name:", file.name);
+    console.log("File size:", file.size, "bytes");
+    console.log("File type:", file.type);
+    playandTranscribe(file);
+    // You can add further logic to process the file here, e.g., upload it to a server
+  }
 });
