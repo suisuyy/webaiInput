@@ -141,7 +141,7 @@ const devilentLIBS = {
     y = 0,
     w = 200,
     h = 0,
-    duration = 2000,
+    duration = 1000,
     zIndex = 9999,
   ) {
     const textArea = document.createElement("textarea");
@@ -152,7 +152,7 @@ const devilentLIBS = {
     textArea.style.outline = "none";
     textArea.style.position = "fixed";
     textArea.style.left = x + "px";
-    textArea.style.bottom = y + "px";
+    textArea.style.top = y + "px";
     textArea.style.zIndex = zIndex;
     textArea.disabled = true;
     document.body.appendChild(textArea);
@@ -169,7 +169,7 @@ const devilentLIBS = {
     textArea.style.outline = "none";
     textArea.style.position = "fixed";
     textArea.style.left = "0";
-    textArea.style.bottom = "0";
+    textArea.style.top = "0";
     textArea.style.zIndex = "9999999";
     document.body.appendChild(textArea);
     textArea.select();
