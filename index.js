@@ -93,6 +93,59 @@ const devilentLIBS = {
       this.mediaRecorder?.stop();
     }
   },
+  tts: function synthesizeSpeech(text, voice) {
+    if (text && voice) {
+      fetch('https://devilent-azuretts.hf.space/synthesize/' + encodeURIComponent(text) + '?voicename=' + encodeURIComponent(voice))
+        .then(response => response.blob())
+        .then(blob => {
+          var url = URL.createObjectURL(blob);
+
+          // Check if a div container with id 'devlent_tts_container' already exists
+          var container = document.getElementById('devlent_tts_container');
+          if (!container) {
+            // Create a new div container if it doesn't exist
+            container = document.createElement('div');
+            container.id = 'devlent_tts_container';
+            document.body.appendChild(container);
+          }
+
+          // Check if an audio element with id 'tts_audio' already exists
+          var audio = document.getElementById('tts_audio');
+          if (!audio) {
+            // Create a new audio element if it doesn't exist
+            audio = document.createElement('audio');
+            audio.id = 'tts_audio';
+            container.appendChild(audio);
+
+            // Create a button to hide the audio
+            var button = document.createElement('button');
+            button.innerHTML = 'Hide Audio';
+            button.onclick = function () {
+              container.style.display = 'none';
+            };
+            container.appendChild(button);
+
+          }
+          container.style.display = 'block';
+
+          // Update the source of the audio element
+          audio.src = url;
+          audio.controls = true;
+          audio.autoplay = true;
+
+
+          // Auto hide the audio after it finishes playing
+          audio.onended = function () {
+            setTimeout(function () {
+              container.style.display = 'none';
+            }, 3000);
+          };
+        })
+        .catch(console.error);
+    }
+  }
+
+  ,
   checkValidString(str) {
     if (str === undefined || str === null || str.trim() === "") {
       return false;
@@ -303,9 +356,8 @@ const devilentLIBS = {
           <div class="code-block">
               <button class="copy-code-btn">Copy Code</button>
               <button class="insert-code-btn">Insert Code</button>
-              <pre><code${
-                language ? ` class="language-${language}"` : ""
-              }>${code}</code></pre>
+              <pre><code${language ? ` class="language-${language}"` : ""
+        }>${code}</code></pre>
           </div>
       `;
     });
@@ -593,7 +645,7 @@ const devilentLIBS = {
     }
     let response = await fetch(
       devilentLIBS.config.corsproxy_url +
-        devilentLIBS.config.lepton_api.completion_url.mixtral,
+      devilentLIBS.config.lepton_api.completion_url.mixtral,
       {
         headers: {
           accept: "*/*",
@@ -830,7 +882,7 @@ let view = {
       menuContainer.style.left =
         Math.min(x, windowWidth - menuContainer.offsetWidth) + "px";
       menuContainer.style.top =
-        Math.min(y, windowHeight - menuContainer.offsetHeight) + "px";
+        Math.min(y, windowHeight - menuContainer.offsetHeight)-100 + "px";
       menuContainer.style.zIndex = "99999999";
 
       return;
@@ -856,7 +908,7 @@ let view = {
     menuContainer.style.left =
       Math.min(x, windowWidth - menuContainer.offsetWidth) + "px";
     menuContainer.style.top =
-      Math.min(y, windowHeight - menuContainer.offsetHeight) + "px";
+      Math.min(y, windowHeight - menuContainer.offsetHeight)-100 + "px";
 
     menuContainer.style.backgroundColor = "white";
     menuContainer.style.boxShadow = "0 2px 5px rgba(0, 0, 0, 0.1)";
@@ -895,7 +947,6 @@ let view = {
     );
     menuContainer.appendChild(removeMenuItem);
 
-    let currentButton;
 
     const closeButton = createMenuItem("Close");
     closeButton.addEventListener("pointerdown", () => {
@@ -906,6 +957,9 @@ let view = {
     });
     menuContainer.appendChild(closeButton);
 
+    createMenuItem('TTS', () => {
+      devilentLIBS.tts(window.getSelection().toString(), 'de-DE-SeraphinaMultilingualNeural');
+    })
     // create start menu item
     const startMenuItem = createMenuItem("Start");
     menuContainer.appendChild(startMenuItem);
@@ -970,7 +1024,7 @@ let view = {
     menuContainer.style.left =
       Math.min(x, windowWidth - menuContainer.offsetWidth) + "px";
     menuContainer.style.top =
-      Math.min(y, windowHeight - menuContainer.offsetHeight) + "px";
+      Math.min(y, windowHeight - menuContainer.offsetHeight)-100 + "px";
     document.body.appendChild(menuContainer);
   },
 
