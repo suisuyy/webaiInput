@@ -25,7 +25,8 @@ const devilentLIBS = {
         return;
       }
       console.log("start recording");
-      return navigator.mediaDevices
+      try {
+        return navigator.mediaDevices
         .getUserMedia({ audio: true })
         .then((stream) => {
           this.mediaRecorder = new MediaRecorder(stream);
@@ -85,7 +86,12 @@ const devilentLIBS = {
               resolve(audioBlob);
             });
           });
-        });
+        });    
+      } catch (error) {
+        console.log(error);
+        return null;
+      }
+      
     }
     stopRecording() {
       this.isRecording = false;
@@ -127,6 +133,10 @@ const devilentLIBS = {
 
           }
           container.style.display = 'block';
+          container.style.position='fixed';
+          container.style.top='0';
+          container.style.left='40vw';
+
 
           // Update the source of the audio element
           audio.src = url;
@@ -933,7 +943,10 @@ let view = {
       menuItem.textContent = textContent;
       menuItem.addEventListener("pointerdown", (event) => {
         event.preventDefault();
-        handler();
+        if(handler){
+          handler();
+
+        }
       });
 
       menuContainer.appendChild(menuItem);

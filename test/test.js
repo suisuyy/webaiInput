@@ -106,3 +106,5 @@ fileInput.addEventListener("change", function (event) {
     // You can add further logic to process the file here, e.g., upload it to a server
   }
 });
+
+
