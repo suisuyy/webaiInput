@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clean and Beautiful Page</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f7f7f7;
+            margin: 0;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        h1 {
+            color: #333;
+        }
+        button {
+            background-color: #5cb85c;
+            border: none;
+            padding: 10px 15px;
+            margin: 10px 5px 20px 0;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        button:hover {
+            background-color: #4cae4c;
+        }
+        input[type="file"] {
+            margin-bottom: 15px;
+        }
+        textarea {
+            width: 100%;
+            height: 20vh;
+            margin-bottom: 15px;
+            padding: 10px;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+            resize: vertical;
+        }
+        input[type="text"],
+        input[type="number"] {
+            width: calc(100% - 22px);
+            padding: 10px;
+            margin-bottom: 15px;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+        }
+        #editableDiv {
+            margin-bottom: 15px;
+            padding: 10px;
+            background-color: #fff;
+            border: 1px dashed #5cb85c;
+            border-radius: 4px;
+        }
+        pre {
+            background-color: #efefef;
+            padding: 10px;
+            border-radius: 4px;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+<body>
+    <h1>Test Page</h1>
+    
+    <button id="start">Start</button>
+    <button id="stop">Stop</button>
+    <button id="testButton">Test</button>
+    <button>Else</button>
+
+    <input id="fileinput" type="file">
+
+    <textarea id="textarea1" name="testtextarea"></textarea>
+    <textarea id="textarea2" name="testtextarea"></textarea>
+
+    <input id="input1" type="text" placeholder="input1">
+    <input id="input2" type="number" placeholder="input2">
+
+    <div id='editableDiv'>
+        <p>This div, its grandparent is editable, so it is editable too</p>
+    </div>
+
+    <textarea id="textarea3" name="testtextarea" style="height:90vh;"></textarea>
+
+    <pre>
+        <!-- Your preformatted text here, if needed. -->
+    </pre>
+
+    <script>
+        const div = document.getElementById("editableDiv");
+        div.contentEditable = true;
+    </script>
+
+    <script src="../index.js"></script>
+    <script src="./transcribe.js"></script>
+</body>
+</html>

@@ -5,12 +5,58 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ai input</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            padding: 20px;
+        }
+        #testLinkContainer {
+            margin-top: 20px;
+            margin-bottom: 20px;
+        }
+        #testLinkContainer a {
+            display: block;
+            margin-bottom: 10px;
+            color: #333;
+            text-decoration: none;
+            background-color: #ddd;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        #testLinkContainer a:hover {
+            background-color: #eee;
+        }
+        textarea {
+            margin-bottom: 20px;
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+        input {
+            display: block;
+            margin-bottom: 20px;
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+        #editableDiv {
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            background-color: #fff;
+        }
+        #editableDiv div {
+            padding: 10px;
+        }
+    </style>
 </head>
 <body>
-    ai input 
-    <pre>
-https://5173-01hm8s5jycsmrc8k2gbqz5e1wf.cloudspaces.litng.ai/
-    </pre>
+    <h1>ai input</h1>
+    <div id="testLinkContainer">
+        <a href="./test/transcribe.html">/test/transcribe.html</a>
+        <a href="./test/test.html">/test/test.html</a>
+    </div>
 
     <textarea rows="20" cols="50"></textarea>
     <br/>
@@ -20,23 +66,19 @@ https://5173-01hm8s5jycsmrc8k2gbqz5e1wf.cloudspaces.litng.ai/
     <div id='editableDiv' editable>
         <div>
             <div>
-                this  div, his grandparen is editable, so he is editable too
+                
             </div>
         </div>
     </div>
 
+    <script>
+        // Get the div element
+        const div = document.getElementById("editableDiv");
+
+        // Make the div element editable
+        div.contentEditable = true;
+    </script>
+
+    <script src="./index.js" type="module"></script>
 </body>
-<!-- <script src="./transcribe.js" ></script> -->
-<script>
-    // Get the div element
-const div = document.getElementById("editableDiv");
-
-// Make the div element editable
-div.contentEditable = true;
-
-
-</script>
-
-<script src="./index.js" type="module"></script>
-
 </html>

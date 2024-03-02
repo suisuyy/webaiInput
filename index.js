@@ -25,8 +25,7 @@ const devilentLIBS = {
         return;
       }
       console.log("start recording");
-      try {
-        return navigator.mediaDevices
+      return navigator.mediaDevices
         .getUserMedia({ audio: true })
         .then((stream) => {
           this.mediaRecorder = new MediaRecorder(stream);
@@ -86,12 +85,22 @@ const devilentLIBS = {
               resolve(audioBlob);
             });
           });
-        });    
-      } catch (error) {
-        console.log(error);
-        return null;
-      }
-      
+        })
+        .catch(error => {
+          // Handle error, user denied permission or an error occurred
+          if (error.name === 'PermissionDeniedError' || error.name === 'NotAllowedError') {
+            console.error('User denied permission to access audio');
+            // Display a notification or perform some other action
+            showNotification('Audio permission denied');
+          } else {
+            console.error('An error occurred while accessing the audio device', error);
+            // Display a notification or perform some other action
+            showNotification('Error accessing audio device');
+          }
+        });
+
+
+
     }
     stopRecording() {
       this.isRecording = false;
@@ -104,10 +113,10 @@ const devilentLIBS = {
       fetch('https://devilent-azuretts.hf.space/synthesize/' + encodeURIComponent(text) + '?voicename=' + encodeURIComponent(voice))
         .then(response => response.blob())
         .then(blob => {
-          var url = URL.createObjectURL(blob);
+          let url = URL.createObjectURL(blob);
 
           // Check if a div container with id 'devlent_tts_container' already exists
-          var container = document.getElementById('devlent_tts_container');
+          let container = document.getElementById('devlent_tts_container');
           if (!container) {
             // Create a new div container if it doesn't exist
             container = document.createElement('div');
@@ -116,7 +125,7 @@ const devilentLIBS = {
           }
 
           // Check if an audio element with id 'tts_audio' already exists
-          var audio = document.getElementById('tts_audio');
+          let audio = document.getElementById('tts_audio');
           if (!audio) {
             // Create a new audio element if it doesn't exist
             audio = document.createElement('audio');
@@ -124,7 +133,7 @@ const devilentLIBS = {
             container.appendChild(audio);
 
             // Create a button to hide the audio
-            var button = document.createElement('button');
+            let button = document.createElement('button');
             button.innerHTML = 'Hide Audio';
             button.onclick = function () {
               container.style.display = 'none';
@@ -133,9 +142,9 @@ const devilentLIBS = {
 
           }
           container.style.display = 'block';
-          container.style.position='fixed';
-          container.style.top='0';
-          container.style.left='40vw';
+          container.style.position = 'fixed';
+          container.style.top = '0';
+          container.style.right = '0';
 
 
           // Update the source of the audio element
@@ -197,6 +206,19 @@ const devilentLIBS = {
     //   e.preventDefault();
     //   e.stopPropagation();
     // });
+  },
+  makeButtonFeedback: function makeButtonFeedback(button) {
+    let originalColor = button.style.backgroundColor;
+
+    button.addEventListener('pointerdown', function () {
+      button.style.backgroundColor = 'lightblue';
+
+      setTimeout(function () {
+        button.style.backgroundColor = originalColor;
+      }, 1000);
+    });
+
+
   },
   showToast: function showToast(
     text,
@@ -273,7 +295,7 @@ const devilentLIBS = {
     speed = 3,
   ) {
     elmnt.style.touchAction = "none"; //need on touch devices
-    var pos1 = 0,
+    let pos1 = 0,
       pos2 = 0,
       pos3 = 0,
       pos4 = 0;
@@ -351,35 +373,39 @@ const devilentLIBS = {
 
   renderMarkdown(mdString, targetElement) {
     // Extend regex patterns to include inline code and code blocks
-    const headerPattern = /^#+\s*(.+)$/gm;
+    let headerPattern = /^(#{1,6})\s*(.*)$/gm;
     const boldPattern = /\*\*(.*?)\*\*/g;
     const linkPattern = /\[(.*?)\]\((.*?)\)/g;
-    const newlinePattern = /(?:\n\n)/g;
+    const newlinePattern = /(?:\n)/g;
     const inlineCodePattern = /`(.*?)`/g;
     const codeBlockPattern = /```(\w+)?\n(.*?)```/gs;
 
     let html = mdString;
-    html = "\n\n" + html;
 
-    html = html.replace(codeBlockPattern, (match, language, code) => {
-      return `
-          <div class="code-block">
-              <button class="copy-code-btn">Copy Code</button>
-              <button class="insert-code-btn">Insert Code</button>
-              <pre><code${language ? ` class="language-${language}"` : ""
-        }>${code}</code></pre>
-          </div>
-      `;
-    });
 
-    // Replace inline code with <code> tags
-    html = html.replace(inlineCodePattern, "<code>$1</code>");
 
-    // Replace headers with <h1> to <h6> tags
-    html = html.replace(headerPattern, (match, content) => {
-      const level = match.slice(0, match.indexOf(" ")).length;
-      return `<h${level}>${content}</h${level}>`;
-    });
+    // Split the string by ``` ``` blocks
+    let parts = html.split('```');
+    // Process each part separately
+    for (let i = 0; i < parts.length; i++) {
+      // If it's not a ``` block
+      if (i % 2 === 0) {
+        // Replace headers with <h1> to <h6> tags
+        parts[i] = parts[i].replace(headerPattern, (match, hash, content) => {
+          const level = hash.length;
+          return `<h${level}>${content}</h${level}>`;
+        });
+
+            // Replace newlines with <br> tags
+        parts[i] = parts[i].replace(newlinePattern, (match, hash, content) => {
+          const level = hash.length;
+          return `<br>`;
+        });
+
+      }
+    }
+    // Join the parts back together
+    html = parts.join('```');
 
     // Replace bold text with <strong> tags
     html = html.replace(boldPattern, "<strong>$1</strong>");
@@ -387,8 +413,24 @@ const devilentLIBS = {
     // Replace links with <a> tags
     html = html.replace(linkPattern, '<a href="$2">$1</a>');
 
-    // Replace newlines with <br> tags
-    html = html.replace(newlinePattern, "<br>");
+    html = html.replace(codeBlockPattern, (match, language, code) => {
+      return `
+          <div class="code-block">
+              <button class="copy-code-btn">Copy</button>
+              <button class="insert-code-btn">Insert</button>
+              <pre>
+
+${code}
+</pre>
+          </div>
+      `;
+    });
+
+    // Replace inline code with <code> tags
+    html = html.replace(inlineCodePattern, "<code>$1</code>");
+
+
+
 
     targetElement.innerHTML = html;
 
@@ -400,7 +442,7 @@ const devilentLIBS = {
       btn.addEventListener("pointerdown", (e) => {
         e.preventDefault();
 
-        const code = btn.parentElement.querySelector("code").innerText;
+        const code = btn.parentElement.querySelector("pre").innerText;
         if (btn.classList.contains("copy-code-btn")) {
           copyToClipboard(code);
         } else if (btn.classList.contains("insert-code-btn")) {
@@ -410,83 +452,15 @@ const devilentLIBS = {
       });
     });
 
-    // Add some basic styles
-    targetElement.classList.add("markdown-container");
-    const style = `
-      <style>
-        .markdown-container {
-          font-family: Arial, sans-serif;
-          line-height: 1.6;
-          max-width: 800px;
-          margin: 0 auto;
-          padding: 0px;
-          background-color: azure;
-          overflow:auto;
-          box-shadow: 0px 0px 50px rgba(0, 0, 0, 0.4);
-          
-        }
-        .code-block {
-          position: relative;
-        }
-        .copy-code-btn, .insert-code-btn {
-          position: absolute;
-          top: 0;
-          right: 0;
-          margin: 5px;
-          padding: 2px 5px;
-          font-size: 12px;
-          border: none;
-          border-radius: 3px;
-          background-color: #007bff;
-          color: white;
-          cursor: pointer;
-        }
-        .copy-btn, .insert-btn {
-          
-          margin: 5px;
-          padding: 2px 5px;
-          font-size: 12px;
-          border: none;
-          border-radius: 3px;
-          background-color: #007bff;
-          color: white;
-          cursor: pointer;
-        }
-        pre {
-          background-color: #f7f7f7;
-          border-radius: 5px;
-          padding: 10px;
-          white-space: pre
-  
-  -wrap;
-  word-break: break-all;
-  }
-  code {
-  background-color: #f1f1f1;
-  border-radius: 3px;
-  padding: 2px 5px;
-  font-family: 'Courier New', Courier, monospace;
-  }
-  a {
-  color: #0645ad;
-  text-decoration: none;
-  }
-  a:hover {
-  text-decoration: underline;
-  }
-  button:hover {
-  background-color: #0056b3;
-  }
-  
-  `;
 
-    document.head.insertAdjacentHTML("beforeend", style);
 
     // Add a copy-to-clipboard button
     const copyButton = document.createElement("button");
     copyButton.innerText = "Copy";
     copyButton.addEventListener("pointerdown", (e) => {
       e.preventDefault();
+      e.stopPropagation();
+
       copyToClipboard(mdString);
     });
     // Add an insert-to-webpage button
@@ -494,6 +468,8 @@ const devilentLIBS = {
     insertButton.innerText = "Insert";
     insertButton.addEventListener("pointerdown", (e) => {
       e.preventDefault();
+      e.stopPropagation();
+
       writeText(document.activeElement, mdString, "", "");
     });
     copyButton.classList.add("copy-btn");
@@ -530,6 +506,117 @@ const devilentLIBS = {
 
     targetElement.prepend(buttonContainer);
     dragElement(buttonContainer, targetElement);
+
+
+    targetElement.classList.add("markdown-container");
+    // Get all elements with the markdown-container class
+    let markdownContainers = document.getElementsByClassName('markdown-container');
+
+    // Loop through the markdownContainers and set their styles
+    for (let i = 0; i < markdownContainers.length; i++) {
+      markdownContainers[i].style.fontFamily = "Arial, sans-serif";
+      markdownContainers[i].style.lineHeight = "1.6";
+      markdownContainers[i].style.maxWidth = "800px";
+      markdownContainers[i].style.margin = "0 auto";
+      markdownContainers[i].style.padding = "0px";
+      markdownContainers[i].style.backgroundColor = "azure";
+      markdownContainers[i].style.overflow = "auto";
+      markdownContainers[i].style.boxShadow = "0px 0px 50px rgba(0, 0, 0, 0.4)";
+    }
+
+    // Get all elements with the code-block class
+    let codeBlocks = document.getElementsByClassName('code-block');
+
+    // Loop through the codeBlocks and set their styles
+    for (let i = 0; i < codeBlocks.length; i++) {
+      codeBlocks[i].style.position = "relative";
+    }
+
+    // Get all elements with the copy-code-btn and insert-code-btn classes
+    let insertCodeBtns = document.getElementsByClassName('insert-code-btn');
+    let codecopyBtns = document.getElementsByClassName('copy-code-btn');
+
+    // Loop through the codeBtns and insertCodeBtns and set their styles
+    for (let i = 0; i < codecopyBtns.length; i++) {
+      codecopyBtns[i].style.top = "0";
+      codecopyBtns[i].style.position = "absolute";
+      codecopyBtns[i].style.right = "0";
+      codecopyBtns[i].style.margin = "5px";
+      codecopyBtns[i].style.padding = "2px 5px";
+      codecopyBtns[i].style.fontSize = "12px";
+      codecopyBtns[i].style.border = "none";
+      codecopyBtns[i].style.borderRadius = "3px";
+      codecopyBtns[i].style.backgroundColor = "#007bff";
+      codecopyBtns[i].style.color = "white";
+      codecopyBtns[i].style.cursor = "pointer";
+    }
+
+    for (let i = 0; i < insertCodeBtns.length; i++) {
+      insertCodeBtns[i].style.position = "absolute";
+      insertCodeBtns[i].style.top = "0";
+      insertCodeBtns[i].style.right = "50px";
+      insertCodeBtns[i].style.margin = "5px";
+      insertCodeBtns[i].style.padding = "2px 5px";
+      insertCodeBtns[i].style.fontSize = "12px";
+      insertCodeBtns[i].style.border = "none";
+      insertCodeBtns[i].style.borderRadius = "3px";
+      insertCodeBtns[i].style.backgroundColor = "#007bff";
+      insertCodeBtns[i].style.color = "white";
+      insertCodeBtns[i].style.cursor = "pointer";
+    }
+
+    // Get all elements with the copy-btn and insert-btn classes
+    let copyBtns = document.getElementsByClassName('copy-btn');
+    let insertBtns = document.getElementsByClassName('insert-btn');
+
+    // Loop through the copyBtns and insertBtns and set their styles
+    for (let i = 0; i < copyBtns.length; i++) {
+      copyBtns[i].style.margin = "5px";
+      copyBtns[i].style.padding = "2px 5px";
+      copyBtns[i].style.fontSize = "12px";
+      copyBtns[i].style.border = "none";
+      copyBtns[i].style.borderRadius = "3px";
+      copyBtns[i].style.backgroundColor = "#007bff";
+      copyBtns[i].style.color = "white";
+      copyBtns[i].style.cursor = "pointer";
+    }
+
+    for (let i = 0; i < insertBtns.length; i++) {
+      insertBtns[i].style.margin = "5px";
+      insertBtns[i].style.padding = "2px 5px";
+      insertBtns[i].style.fontSize = "12px";
+      insertBtns[i].style.border = "none";
+      insertBtns[i].style.borderRadius = "3px";
+      insertBtns[i].style.backgroundColor = "#007bff";
+      insertBtns[i].style.color = "white";
+      insertBtns[i].style.cursor = "pointer";
+    }
+
+    // Get all elements with the pre class
+    let pres = targetElement.getElementsByTagName('pre');
+
+    // Loop through the pres and set their styles
+    for (let i = 0; i < pres.length; i++) {
+      pres[i].style.backgroundColor = "#f7f7f7";
+      pres[i].style.borderRadius = "5px";
+      pres[i].style.padding = "10px";
+      pres[i].style.whiteSpace = "pre-wrap";
+      pres[i].style.wordBreak = "break-all";
+    }
+
+    // Get all elements with the code class
+    let codes = targetElement.getElementsByTagName('code');
+
+    // Loop through the codes and set their styles
+    for (let i = 0; i < codes.length; i++) {
+      codes[i].style.backgroundColor = "#f1f1f1";
+      codes[i].style.borderRadius = "3px";
+      codes[i].style.padding = "2px 5px";
+      codes[i].style.fontFamily = "'Courier New', Courier, monospace";
+    }
+
+
+
   },
   displayMarkdown(mdString) {
     let containerID = "ai_input_md_dispalyer";
@@ -705,6 +792,7 @@ let model = {
   supportedInputTypeList: ["text", "number", "tel", "search", "url", "email"],
   buttonBackgroundColor: "lightblue",
   minimalRecordTime: 2000,
+  keepButtonAliveInterval: 0,
 };
 
 let view = {
@@ -716,7 +804,7 @@ let view = {
     this.recorder = new Recorder();
     this.createButton();
 
-    setInterval(() => {
+    model.keepButtonAliveInterval = setInterval(() => {
       const whisperButton = document.getElementById("whisper_voice_button");
 
       if (whisperButton) {
@@ -892,7 +980,7 @@ let view = {
       menuContainer.style.left =
         Math.min(x, windowWidth - menuContainer.offsetWidth) + "px";
       menuContainer.style.top =
-        Math.min(y, windowHeight - menuContainer.offsetHeight)-100 + "px";
+        Math.min(y, windowHeight - menuContainer.offsetHeight) - 100 + "px";
       menuContainer.style.zIndex = "99999999";
 
       return;
@@ -918,7 +1006,7 @@ let view = {
     menuContainer.style.left =
       Math.min(x, windowWidth - menuContainer.offsetWidth) + "px";
     menuContainer.style.top =
-      Math.min(y, windowHeight - menuContainer.offsetHeight)-100 + "px";
+      Math.min(y, windowHeight - menuContainer.offsetHeight) - 100 + "px";
 
     menuContainer.style.backgroundColor = "white";
     menuContainer.style.boxShadow = "0 2px 5px rgba(0, 0, 0, 0.1)";
@@ -943,13 +1031,14 @@ let view = {
       menuItem.textContent = textContent;
       menuItem.addEventListener("pointerdown", (event) => {
         event.preventDefault();
-        if(handler){
+        if (handler) {
           handler();
 
         }
       });
 
       menuContainer.appendChild(menuItem);
+      devilentLIBS.makeButtonFeedback(menuItem);
       return menuItem;
     }
 
@@ -964,6 +1053,7 @@ let view = {
     const closeButton = createMenuItem("Close");
     closeButton.addEventListener("pointerdown", () => {
       if (confirm("remove the AI tool now?")) {
+        clearInterval(model.keepButtonAliveInterval);
         view.elem.voiceButton.remove();
         menuContainer.remove();
       }
@@ -980,12 +1070,7 @@ let view = {
       view.handler.startRecording();
     });
 
-    // create stop menu item
-    const stopMenuItem = createMenuItem("Stop");
-    menuContainer.appendChild(stopMenuItem);
-    stopMenuItem.addEventListener("pointerdown", () => {
-      view.handler.stopRecording();
-    });
+
 
     let copyButton = createMenuItem("Copy");
     menuContainer.appendChild(copyButton);
@@ -1022,6 +1107,11 @@ let view = {
       document.execCommand("insertText", false, "\n");
     });
 
+    createMenuItem('Correct', ()=>{
+      let correctPrompt='just give answer,put answer in ``` ``` like code , neednt double quotas " " or number  ,fix mistakes of the text, make it better, you can give 2 answer for me to choose if necessary, give me one by one: ';
+      view.handler.chat(correctPrompt);
+    })
+
     let askButton = createMenuItem("Ask");
     menuContainer.appendChild(askButton);
     askButton.addEventListener("pointerdown", (e) => {
@@ -1037,13 +1127,13 @@ let view = {
     menuContainer.style.left =
       Math.min(x, windowWidth - menuContainer.offsetWidth) + "px";
     menuContainer.style.top =
-      Math.min(y, windowHeight - menuContainer.offsetHeight)-100 + "px";
+      Math.min(y, windowHeight - menuContainer.offsetHeight) - 100 + "px";
     document.body.appendChild(menuContainer);
   },
 
   createMenuByGPT4(x, y) {
     // Check if the menu already exists
-    var existingMenu = document.getElementById("customMenu");
+    let existingMenu = document.getElementById("customMenu");
 
     if (existingMenu) {
       // Move the existing menu to the new position
@@ -1053,7 +1143,7 @@ let view = {
     }
 
     // Create the menu container
-    var menu = document.createElement("div");
+    let menu = document.createElement("div");
     menu.id = "customMenu";
     menu.style.position = "fixed";
     menu.style.left = x + "px";
@@ -1066,10 +1156,10 @@ let view = {
     menu.style.zIndex = "1000";
 
     // Add menu items
-    var itemList = ["Remove", "Start", "Stop"];
+    let itemList = ["Remove", "Start", "Stop"];
 
     itemList.forEach(function (item) {
-      var button = document.createElement("button");
+      let button = document.createElement("button");
       button.textContent = item;
       button.style.marginRight = "5px";
       button.style.padding = "5px 10px";
@@ -1113,6 +1203,21 @@ let view = {
   },
 
   handler: {
+    async chat(message){
+      
+      
+      let selectionString = window.getSelection().toString();
+      let userText = message+ (selectionString);
+       
+      if (devilentLIBS.checkValidString(userText) === false) {
+        console.log("chat(): invalid userText:", userText);
+        return;
+      }
+     
+      devilentLIBS.displayMarkdown(userText + " please wait");
+      devilentLIBS.leptonSimpleComplete(userText);
+    }
+    ,
     async ask() {
       let startTime = Date.now();
       let audioblob = await view.recorder.startRecording(view.elem.voiceButton);
@@ -1125,7 +1230,7 @@ let view = {
       }
 
       let transcribe = await sendAudioToLeptonWhisperApi(audioblob);
-      if (transcribe === false) {
+      if (!transcribe) {
         console.log("transcribe failed, try alternative way");
         transcribe = await whisperjaxws(audioblob);
       }
@@ -1137,7 +1242,8 @@ let view = {
         console.log("ask(): invalid userText:", userText);
         return;
       }
-      devilentLIBS.displayMarkdown(userText + "\n\n please wait");
+      userText = userText + '\n\n\n';
+      devilentLIBS.displayMarkdown(userText + " please wait");
       devilentLIBS.leptonSimpleComplete(userText);
     },
     async startRecording(event) {
