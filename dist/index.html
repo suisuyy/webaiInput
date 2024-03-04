@@ -28,8 +28,6 @@
             background-color: #eee;
         }
         textarea {
-            width: 90%;
-            height: 40vh;
             margin-bottom: 20px;
             padding: 10px;
             border-radius: 5px;
@@ -52,16 +50,16 @@
             padding: 10px;
         }
     </style>
+  <script type="module" crossorigin src="./index.js"></script>
 </head>
 <body>
-    <h1>ai input</h1>
+    <h1>ai input dist</h1>
     <div id="testLinkContainer">
-        <a href="./test/transcribe.html">./test/transcribe.html</a>
-        <a href="./test/test.html">./test/test.html</a>
-        <a href="./dist/index.html">./dist/index.html</a>
+        <a href="/test/transcribe.html">/test/transcribe.html</a>
+        <a href="/test/test.html">/test/test.html</a>
     </div>
 
-    <textarea ></textarea>
+    <textarea rows="20" cols="50"></textarea>
     <br/>
     <input />
 
@@ -69,7 +67,7 @@
     <div id='editableDiv' editable>
         <div>
             <div>
-                editable div
+                
             </div>
         </div>
     </div>
@@ -82,6 +80,5 @@
         div.contentEditable = true;
     </script>
 
-    <script src="./index.js" type="module"></script>
 </body>
 </html>

@@ -1,3 +1,4 @@
+(() => {
 const devilentLIBS = {
   config: {
     corsproxy_url: ["https://corsp.suisuy.eu.org?"],
@@ -1552,3 +1553,4 @@ async function sendAudioToHFWhisperApi(blob) {
 }
 
 console.log("end script");
+})();
