@@ -208,7 +208,7 @@ const devilentLIBS = {
     // });
   },
   makeButtonFeedback: function makeButtonFeedback(button) {
-    let originalColor = button.style.backgroundColor;
+    let originalColor = button.style.backgroundColor || 'white';
 
     button.addEventListener('pointerdown', function () {
       button.style.backgroundColor = 'lightblue';
@@ -1030,7 +1030,7 @@ let view = {
       menuContainer.appendChild(menuItem);
       // Set inline styles
       menuItem.style.cssText = `
-        background-color: transparent;
+        background-color: white;
         border: none;
         font-size: 14px;
         width: 80px;
@@ -1038,7 +1038,6 @@ let view = {
         cursor: pointer;
         margin-bottom: 0;
         margin-top: 0;
-        touch-action: none;
         padding: 5px 10px;
         color: #333;
         transition: background-color 0.3s ease;
@@ -1055,15 +1054,7 @@ let view = {
           handler();
         }
       });
-      // Add hover effect
-      menuItem.addEventListener("mouseover", () => {
-        menuItem.style.backgroundColor = "#f0f0f0";
-      });
-    
-      menuItem.addEventListener("mouseout", () => {
-        menuItem.style.backgroundColor = "transparent";
-      });
-    
+      
       return menuItem;
     }
     
