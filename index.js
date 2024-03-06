@@ -141,6 +141,7 @@ const devilentLIBS = {
           this.mediaRecorder = new MediaRecorder(stream);
 
           let isSilent=false;
+          let isLongSilent=false;
           let silenceStart = Date.now();
           let silenceDuration = 0;
 
@@ -175,7 +176,12 @@ const devilentLIBS = {
 
             if (averageVolume < 15) {
               if(isSilent){
-
+                silenceDuration = Date.now() - silenceStart;
+                if(silenceDuration>3000){
+                  isLongSilent=true;
+                  mediaRecorder.requestData();
+                  silenceStart=Date.now();
+                }
               }
               else{
                 silenceDuration = Date.now() - silenceStart;
@@ -190,6 +196,7 @@ const devilentLIBS = {
             }
             else{
               isSilent=false;
+              isLongSilent=false;
               silenceStart=Date.now();
             }
 
@@ -204,18 +211,22 @@ const devilentLIBS = {
           setTimeout(() => {
             mediaRecorder.requestData();
 
-          }, 100);
+          }, 200);
           mediaRecorder.addEventListener("dataavailable", (event) => {
-            if(counter<=0){
-              counter++;
+            counter++;
+            if(counter<=1){
               firstdata=event.data;
-              if (event.data.size > 0) {
+              if (event.data.size > 0 ) {
                 audioChunks.push(event.data);
               }
               return;
             }
             console.log("dataavailable",event.data);
-            
+            if(isLongSilent){
+            console.log("dataavailable,Long silent will do noting",event.data);
+              return;
+            }
+
             silenceHandler(new Blob([firstdata,event.data],{ type: mediaRecorder.mimeType }) );
             
           });
