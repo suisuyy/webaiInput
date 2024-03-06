@@ -19,7 +19,12 @@ const devilentLIBS = {
     }
 
     // The startRecording method remains mostly unchanged until the getUserMedia.then() block
-    async startRecording(targetElement) {
+    async startRecording(
+      targetElement,
+      silenceHandler = () => {
+        console.log("silence detect");
+      }
+    ) {
       if (this.isRecording) {
         console.log("already recording");
         return;
@@ -29,6 +34,9 @@ const devilentLIBS = {
         .getUserMedia({ audio: true })
         .then((stream) => {
           this.mediaRecorder = new MediaRecorder(stream);
+
+          let silenceStart = Date.now();
+          let silenceDuration = 0;
 
           let mediaRecorder = this.mediaRecorder;
           let audioChunks = [];
@@ -57,7 +65,17 @@ const devilentLIBS = {
               sum += dataArray[i];
             }
             let averageVolume = sum / bufferLength;
-            let scale = 3 + averageVolume / 15; // Scale factor between 1 and 2
+            if (averageVolume < 10) {
+              silenceDuration = Date.now() - silenceStart;
+              if (silenceDuration > 1000) {
+                silenceHandler();
+              }
+            }
+            else{
+              silenceStart=Date.now();
+            }
+
+            let scale = 3 + averageVolume / 15;
             targetElement.style.transform = `scale(${scale})`; // Next
           };
           // Call the updateButtonFontSize function periodically
@@ -105,6 +123,141 @@ const devilentLIBS = {
           }
         });
     }
+
+    async startRecordingWithSilenceDetection(
+      targetElement,
+      silenceHandler = () => {
+        console.log("silence detect");
+      }
+    ) {
+      if (this.isRecording) {
+        console.log("already recording");
+        return;
+      }
+      console.log("start recording");
+      return navigator.mediaDevices
+        .getUserMedia({ audio: true })
+        .then((stream) => {
+          this.mediaRecorder = new MediaRecorder(stream);
+
+          let isSilent=false;
+          let silenceStart = Date.now();
+          let silenceDuration = 0;
+
+          let mediaRecorder = this.mediaRecorder;
+          let audioChunks = [];
+          mediaRecorder.start();
+          this.isRecording = true;
+          targetElement.style.backgroundColor = "rgba(173, 216, 230, 0.3)";
+
+          // // Audio context for volume analysis
+          let volumeInterval;
+          let audioContext;
+          audioContext = new AudioContext();
+          const analyser = audioContext.createAnalyser();
+          const microphone = audioContext.createMediaStreamSource(
+            mediaRecorder.stream
+          );
+          microphone.connect(analyser);
+          analyser.fftSize = 512;
+          const bufferLength = analyser.frequencyBinCount;
+          const dataArray = new Uint8Array(bufferLength);
+
+          // Function that updates the button's font size
+          const handleAudioData = () => {
+            analyser.getByteFrequencyData(dataArray);
+            let sum = 0;
+            for (let i = 0; i < bufferLength; i++) {
+              sum += dataArray[i];
+            }
+            let averageVolume = sum / bufferLength;
+//            console.log(averageVolume);
+
+            if (averageVolume < 15) {
+              if(isSilent){
+
+              }
+              else{
+                silenceDuration = Date.now() - silenceStart;
+                if (silenceDuration > 600) {
+                  isSilent=true;
+                  console.log('change isSilent to true');
+
+                  mediaRecorder.requestData();
+                }
+              }
+              
+            }
+            else{
+              isSilent=false;
+              silenceStart=Date.now();
+            }
+
+            let scale = 3 + averageVolume / 15;
+            targetElement.style.transform = `scale(${scale})`; // Next
+          };
+          volumeInterval = setInterval(handleAudioData, 100);
+
+          //when silence, it will trigger dataavailable event, for normal case , dataavalable only occure on stop recording
+          let counter=0;
+          let firstdata;
+          setTimeout(() => {
+            mediaRecorder.requestData();
+
+          }, 100);
+          mediaRecorder.addEventListener("dataavailable", (event) => {
+            if(counter<=0){
+              counter++;
+              firstdata=event.data;
+              if (event.data.size > 0) {
+                audioChunks.push(event.data);
+              }
+              return;
+            }
+            console.log("dataavailable",event.data);
+            
+            silenceHandler(new Blob([firstdata,event.data],{ type: mediaRecorder.mimeType }) );
+            
+          });
+
+          return new Promise((resolve, reject) => {
+            mediaRecorder.addEventListener("stop", async () => {
+              this.isRecording = false;
+              console.log("stop");
+              clearInterval(volumeInterval);
+              const audioBlob = new Blob(audioChunks, {
+                type: this.encodeType,
+              });
+              targetElement.style.transform = `scale(1)`; // Next
+              targetElement.style.background = "transparent";
+
+              audioContext?.close(); // Close the audio context when done
+              mediaRecorder.stream.getTracks().forEach((track) => track.stop());
+              console.log("resolved ");
+              resolve(audioBlob);
+            });
+          });
+        })
+        .catch((error) => {
+          // Handle error, user denied permission or an error occurred
+          if (
+            error.name === "PermissionDeniedError" ||
+            error.name === "NotAllowedError"
+          ) {
+            console.error("User denied permission to access audio");
+            // Display a notification or perform some other action
+            showNotification("Audio permission denied");
+          } else {
+            console.error(
+              "An error occurred while accessing the audio device",
+              error
+            );
+            // Display a notification or perform some other action
+            showNotification("Error accessing audio device");
+          }
+        });
+    }
+
     stopRecording() {
       this.isRecording = false;
 
@@ -723,7 +876,7 @@ ${code}
     audio.controls = true;
 
     // Append the audio element to the document (optional)
-    document.body.appendChild(audio); // Uncomment if you want to display the audio player
+    document.body.prepend(audio); // Uncomment if you want to display the audio player
 
     // Play the audio
     audio
@@ -1072,7 +1225,7 @@ let view = {
     const startMenuItem = createMenuItem("Start");
     menuContainer.appendChild(startMenuItem);
     startMenuItem.addEventListener("pointerdown", () => {
-      view.handler.startRecording();
+      view.handler.startRecordingWithSilenceDetection();
     });
 
     let copyButton = createMenuItem("Copy");
@@ -1120,12 +1273,16 @@ let view = {
     menuContainer.appendChild(askButton);
     askButton.addEventListener("pointerdown", (e) => {
       e.preventDefault();
+      document.body.addEventListener("pointerup", () => {
+        view.handler.stopRecording();
+      },{once:true});
+
       view.handler.ask();
+      
+    
     });
 
-    document.body.addEventListener("pointerup", () => {
-      view.handler.stopRecording();
-    });
+    
     // add menu to the body
 
     menuContainer.style.left =
@@ -1226,7 +1383,7 @@ let view = {
 
       if (Date.now() - startTime < model.minimalRecordTime) {
         devilentLIBS.showToast("time too short, this will not transcribe");
-        console.log("ask():", devilentLIBS.getSelectionText()  );
+        console.log("ask():", devilentLIBS.getSelectionText());
         devilentLIBS.leptonSimpleComplete(devilentLIBS.getSelectionText());
         return;
       }
@@ -1265,6 +1422,42 @@ let view = {
       }
       devilentLIBS.writeText(document.activeElement, transcribe);
     },
+    async startRecordingWithSilenceDetection(event) {
+      //todo
+      let startTime = Date.now();
+      let finalAudioblob = await view.recorder.startRecordingWithSilenceDetection(view.elem.voiceButton,
+          (audoBlob=>{
+              sendAudioToLeptonWhisperApi(audoBlob).then(transcribe=>{
+              if (transcribe === false) {
+                  console.log("transcribe failed, try alternative way");
+                  whisperjaxws(audoBlob).then(transcribe=>{
+                  devilentLIBS.writeText(document.activeElement, transcribe);
+                  });
+                  
+              }
+              else{
+              devilentLIBS.writeText(document.activeElement, transcribe);
+
+              }
+      });
+
+      
+      }));
+      //console.log(await blobToBase64(audioblob))
+
+      if (Date.now() - startTime < model.minimalRecordTime) {
+        devilentLIBS.showToast("time too short, this will not transcribe");
+        return;
+      }
+
+      let transcribe = await sendAudioToLeptonWhisperApi(finalAudioblob);
+      if (transcribe === false) {
+        console.log("transcribe failed, try alternative way");
+        transcribe = await whisperjaxws(finalAudioblob);
+      }
+      devilentLIBS.writeText(document.activeElement, transcribe);
+    },
+
     stopRecording(safeStop = true) {
       model.isRecording = false;
       if (safeStop) {

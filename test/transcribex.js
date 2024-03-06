@@ -48,7 +48,10 @@ let rec = new devilentLIBS.Recorder();
 document.querySelector("#start").addEventListener("click", async () => {
   console.log("start");
   textarea.value = "";
-  let blob = await rec.startRecording(stopButton);
+  let blob = await rec.startRecordingWithSilenceDetection(stopButton,(audioBlob)=>{
+  playandTranscribe(audioBlob);
+
+  });
 
   //        rec.startRecording(document.body,playAudioBlob)
   //      rec.startRecording(document.body,blobToBase64)
