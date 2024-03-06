@@ -141,7 +141,7 @@ const devilentLIBS = {
           this.mediaRecorder = new MediaRecorder(stream);
 
           let isSilent=false;
-          let isLongSilent=false;
+          let isLongSilent=true;
           let silenceStart = Date.now();
           let silenceDuration = 0;
 
@@ -185,7 +185,7 @@ const devilentLIBS = {
               }
               else{
                 silenceDuration = Date.now() - silenceStart;
-                if (silenceDuration > 600) {
+                if (silenceDuration > 1000) {
                   isSilent=true;
                   console.log('change isSilent to true');
 
