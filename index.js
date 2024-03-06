@@ -42,7 +42,7 @@ const devilentLIBS = {
           audioContext = new AudioContext();
           const analyser = audioContext.createAnalyser();
           const microphone = audioContext.createMediaStreamSource(
-            mediaRecorder.stream,
+            mediaRecorder.stream
           );
           microphone.connect(analyser);
           analyser.fftSize = 512;
@@ -86,21 +86,24 @@ const devilentLIBS = {
             });
           });
         })
-        .catch(error => {
+        .catch((error) => {
           // Handle error, user denied permission or an error occurred
-          if (error.name === 'PermissionDeniedError' || error.name === 'NotAllowedError') {
-            console.error('User denied permission to access audio');
+          if (
+            error.name === "PermissionDeniedError" ||
+            error.name === "NotAllowedError"
+          ) {
+            console.error("User denied permission to access audio");
             // Display a notification or perform some other action
-            showNotification('Audio permission denied');
+            showNotification("Audio permission denied");
           } else {
-            console.error('An error occurred while accessing the audio device', error);
+            console.error(
+              "An error occurred while accessing the audio device",
+              error
+            );
             // Display a notification or perform some other action
-            showNotification('Error accessing audio device');
+            showNotification("Error accessing audio device");
           }
         });
-
-
-
     }
     stopRecording() {
       this.isRecording = false;
@@ -110,61 +113,62 @@ const devilentLIBS = {
   },
   tts: function synthesizeSpeech(text, voice) {
     if (text && voice) {
-      fetch('https://devilent-azuretts.hf.space/synthesize/' + encodeURIComponent(text) + '?voicename=' + encodeURIComponent(voice))
-        .then(response => response.blob())
-        .then(blob => {
+      fetch(
+        "https://devilent-azuretts.hf.space/synthesize/" +
+          encodeURIComponent(text) +
+          "?voicename=" +
+          encodeURIComponent(voice)
+      )
+        .then((response) => response.blob())
+        .then((blob) => {
           let url = URL.createObjectURL(blob);
 
           // Check if a div container with id 'devlent_tts_container' already exists
-          let container = document.getElementById('devlent_tts_container');
+          let container = document.getElementById("devlent_tts_container");
           if (!container) {
             // Create a new div container if it doesn't exist
-            container = document.createElement('div');
-            container.id = 'devlent_tts_container';
+            container = document.createElement("div");
+            container.id = "devlent_tts_container";
             document.body.appendChild(container);
           }
 
           // Check if an audio element with id 'tts_audio' already exists
-          let audio = document.getElementById('tts_audio');
+          let audio = document.getElementById("tts_audio");
           if (!audio) {
             // Create a new audio element if it doesn't exist
-            audio = document.createElement('audio');
-            audio.id = 'tts_audio';
+            audio = document.createElement("audio");
+            audio.id = "tts_audio";
             container.appendChild(audio);
 
             // Create a button to hide the audio
-            let button = document.createElement('button');
-            button.innerHTML = 'Hide Audio';
+            let button = document.createElement("button");
+            button.innerHTML = "Hide Audio";
             button.onclick = function () {
-              container.style.display = 'none';
+              container.style.display = "none";
             };
             container.appendChild(button);
-
           }
-          container.style.display = 'block';
-          container.style.position = 'fixed';
-          container.style.top = '0';
-          container.style.right = '0';
-
+          container.style.display = "block";
+          container.style.position = "fixed";
+          container.style.top = "0";
+          container.style.right = "0";
 
           // Update the source of the audio element
           audio.src = url;
           audio.controls = true;
           audio.autoplay = true;
 
-
           // Auto hide the audio after it finishes playing
           audio.onended = function () {
             setTimeout(function () {
-              container.style.display = 'none';
+              container.style.display = "none";
             }, 3000);
           };
         })
         .catch(console.error);
     }
-  }
+  },
 
-  ,
   checkValidString(str) {
     if (str === undefined || str === null || str.trim() === "") {
       return false;
@@ -207,18 +211,26 @@ const devilentLIBS = {
     //   e.stopPropagation();
     // });
   },
+  getSelectionText: function getSelectionText() {
+    let activeElement = document.activeElement;
+    if (activeElement && activeElement.value) {
+      return activeElement.value.substring(
+        activeElement.selectionStart,
+        activeElement.selectionEnd
+      );
+    } else {
+      return window.getSelection().toString();
+    }
+  },
   makeButtonFeedback: function makeButtonFeedback(button) {
-    let originalColor = button.style.backgroundColor || 'white';
+    let originalColor = button.style.backgroundColor || "white";
 
-    button.addEventListener('pointerdown', function () {
-      button.style.backgroundColor = 'lightblue';
-
-      setTimeout(function () {
-        button.style.backgroundColor = originalColor;
-      }, 1000);
+    button.addEventListener("pointerdown", function () {
+      button.style.backgroundColor = "lightblue";
     });
-
-
+    document.body.addEventListener("pointerup", () => {
+      button.style.backgroundColor = originalColor;
+    });
   },
   showToast: function showToast(
     text,
@@ -227,7 +239,7 @@ const devilentLIBS = {
     w = 200,
     h = 0,
     duration = 1000,
-    zIndex = 9999,
+    zIndex = 9999
   ) {
     const textArea = document.createElement("textarea");
     textArea.value = text;
@@ -272,7 +284,7 @@ const devilentLIBS = {
     targetElement,
     text,
     prefix = " ",
-    endfix = " ",
+    endfix = " "
   ) {
     console.log("writeText(): ", targetElement);
     if (
@@ -284,7 +296,7 @@ const devilentLIBS = {
       targetElement.scrollTo(100000, 1000000);
     } else {
       document.execCommand("insertText", false, `${prefix}${text}${endfix}`);
-      copyToClipboard(text);
+      devilentLIBS.copyToClipboard(text);
 
       // targetElement.value += ' ' + text;
     }
@@ -292,7 +304,7 @@ const devilentLIBS = {
   dragElement: function dragElement(
     elmnt,
     movableElmnt = elmnt.parentElement,
-    speed = 3,
+    speed = 3
   ) {
     elmnt.style.touchAction = "none"; //need on touch devices
     let pos1 = 0,
@@ -337,7 +349,7 @@ const devilentLIBS = {
       document.body.appendChild(shadeDiv);
       rmShadeTimeout = setTimeout(() => {
         document.body.removeChild(
-          document.querySelector("#shadeDivForDragElement"),
+          document.querySelector("#shadeDivForDragElement")
         );
       }, 10000);
     }
@@ -365,7 +377,7 @@ const devilentLIBS = {
       document.body.removeEventListener("pointerup", closeDragElement);
 
       document.body.removeChild(
-        document.querySelector("#shadeDivForDragElement"),
+        document.querySelector("#shadeDivForDragElement")
       );
       //clearTimeout(rmShadeTimeout);
     }
@@ -382,10 +394,8 @@ const devilentLIBS = {
 
     let html = mdString;
 
-
-
     // Split the string by ``` ``` blocks
-    let parts = html.split('```');
+    let parts = html.split("```");
     // Process each part separately
     for (let i = 0; i < parts.length; i++) {
       // If it's not a ``` block
@@ -396,16 +406,15 @@ const devilentLIBS = {
           return `<h${level}>${content}</h${level}>`;
         });
 
-            // Replace newlines with <br> tags
+        // Replace newlines with <br> tags
         parts[i] = parts[i].replace(newlinePattern, (match, hash, content) => {
           const level = hash.length;
           return `<br>`;
         });
-
       }
     }
     // Join the parts back together
-    html = parts.join('```');
+    html = parts.join("```");
 
     // Replace bold text with <strong> tags
     html = html.replace(boldPattern, "<strong>$1</strong>");
@@ -429,9 +438,6 @@ ${code}
     // Replace inline code with <code> tags
     html = html.replace(inlineCodePattern, "<code>$1</code>");
 
-
-
-
     targetElement.innerHTML = html;
 
     // Function to copy the code to clipboard
@@ -444,15 +450,13 @@ ${code}
 
         const code = btn.parentElement.querySelector("pre").innerText;
         if (btn.classList.contains("copy-code-btn")) {
-          copyToClipboard(code);
+          devilentLIBS.copyToClipboard(code);
         } else if (btn.classList.contains("insert-code-btn")) {
           console.log("insert button down");
-          writeText(document.activeElement, code, "", "");
+          devilentLIBS.writeText(document.activeElement, code, "", "");
         }
       });
     });
-
-
 
     // Add a copy-to-clipboard button
     const copyButton = document.createElement("button");
@@ -461,7 +465,7 @@ ${code}
       e.preventDefault();
       e.stopPropagation();
 
-      copyToClipboard(mdString);
+      devilentLIBS.copyToClipboard(mdString);
     });
     // Add an insert-to-webpage button
     const insertButton = document.createElement("button");
@@ -470,7 +474,7 @@ ${code}
       e.preventDefault();
       e.stopPropagation();
 
-      writeText(document.activeElement, mdString, "", "");
+      devilentLIBS.writeText(document.activeElement, mdString, "", "");
     });
     copyButton.classList.add("copy-btn");
     insertButton.classList.add("insert-btn");
@@ -505,12 +509,12 @@ ${code}
     // Append the container to the parent
 
     targetElement.prepend(buttonContainer);
-    dragElement(buttonContainer, targetElement);
-
+    devilentLIBS.dragElement(buttonContainer, targetElement);
 
     targetElement.classList.add("markdown-container");
     // Get all elements with the markdown-container class
-    let markdownContainers = document.getElementsByClassName('markdown-container');
+    let markdownContainers =
+      document.getElementsByClassName("markdown-container");
 
     // Loop through the markdownContainers and set their styles
     for (let i = 0; i < markdownContainers.length; i++) {
@@ -525,7 +529,7 @@ ${code}
     }
 
     // Get all elements with the code-block class
-    let codeBlocks = document.getElementsByClassName('code-block');
+    let codeBlocks = document.getElementsByClassName("code-block");
 
     // Loop through the codeBlocks and set their styles
     for (let i = 0; i < codeBlocks.length; i++) {
@@ -533,8 +537,8 @@ ${code}
     }
 
     // Get all elements with the copy-code-btn and insert-code-btn classes
-    let insertCodeBtns = document.getElementsByClassName('insert-code-btn');
-    let codecopyBtns = document.getElementsByClassName('copy-code-btn');
+    let insertCodeBtns = document.getElementsByClassName("insert-code-btn");
+    let codecopyBtns = document.getElementsByClassName("copy-code-btn");
 
     // Loop through the codeBtns and insertCodeBtns and set their styles
     for (let i = 0; i < codecopyBtns.length; i++) {
@@ -566,8 +570,8 @@ ${code}
     }
 
     // Get all elements with the copy-btn and insert-btn classes
-    let copyBtns = document.getElementsByClassName('copy-btn');
-    let insertBtns = document.getElementsByClassName('insert-btn');
+    let copyBtns = document.getElementsByClassName("copy-btn");
+    let insertBtns = document.getElementsByClassName("insert-btn");
 
     // Loop through the copyBtns and insertBtns and set their styles
     for (let i = 0; i < copyBtns.length; i++) {
@@ -593,7 +597,7 @@ ${code}
     }
 
     // Get all elements with the pre class
-    let pres = targetElement.getElementsByTagName('pre');
+    let pres = targetElement.getElementsByTagName("pre");
 
     // Loop through the pres and set their styles
     for (let i = 0; i < pres.length; i++) {
@@ -605,7 +609,7 @@ ${code}
     }
 
     // Get all elements with the code class
-    let codes = targetElement.getElementsByTagName('code');
+    let codes = targetElement.getElementsByTagName("code");
 
     // Loop through the codes and set their styles
     for (let i = 0; i < codes.length; i++) {
@@ -614,9 +618,6 @@ ${code}
       codes[i].style.padding = "2px 5px";
       codes[i].style.fontFamily = "'Courier New', Courier, monospace";
     }
-
-
-
   },
   displayMarkdown(mdString) {
     let containerID = "ai_input_md_dispalyer";
@@ -644,7 +645,7 @@ ${code}
     // The rect object contains the position information
     let x = rect.left + rect.width * 0.85; // X position relative to the window
     let y = rect.top;
-    x=Math.max(x,300);
+    x = Math.max(x, 300);
     if (alwayInWindow) {
       x = Math.abs(x);
       y = Math.abs(y);
@@ -669,7 +670,7 @@ ${code}
 
       if (deltaX <= 10 && deltaY <= 10 && Date.now() - startTime < 1000) {
         console.log(
-          "Minimal mouse movement (< 10px in either direction) and short duration click detected.",
+          "Minimal mouse movement (< 10px in either direction) and short duration click detected."
         );
         handler(event);
       }
@@ -743,7 +744,7 @@ ${code}
     }
     let response = await fetch(
       devilentLIBS.config.corsproxy_url +
-      devilentLIBS.config.lepton_api.completion_url.mixtral,
+        devilentLIBS.config.lepton_api.completion_url.mixtral,
       {
         headers: {
           accept: "*/*",
@@ -759,7 +760,7 @@ ${code}
           max_tokens: 100000,
         }),
         method: "POST",
-      },
+      }
     );
     response = await response.json();
     let responseMessage = response?.choices[0]?.message?.content;
@@ -770,19 +771,6 @@ ${code}
     return response;
   },
 };
-
-let dragElement = devilentLIBS.dragElement;
-let Recorder = devilentLIBS.Recorder;
-let writeText = devilentLIBS.writeText;
-let copyToClipboard = devilentLIBS.copyToClipboard;
-let showToast = devilentLIBS.showToast;
-
-let moveToElement = devilentLIBS.moveToElement;
-let addEventListenerForActualClick =
-  devilentLIBS.addEventListenerForActualClick;
-
-let blobToBase64 = devilentLIBS.blobToBase64;
-let playAudioBlob = devilentLIBS.playAudioBlob;
 
 let model = {
   api_url: "",
@@ -802,7 +790,7 @@ let view = {
     voiceButton: null,
   },
   init() {
-    this.recorder = new Recorder();
+    this.recorder = new devilentLIBS.Recorder();
     this.createButton();
 
     model.keepButtonAliveInterval = setInterval(() => {
@@ -850,7 +838,7 @@ let view = {
     button.style.touchAction = "none";
     document.body.appendChild(button);
 
-    dragElement(button, button);
+    devilentLIBS.dragElement(button, button);
     button.addEventListener("click", () => {
       // this.controller.handleRecording(targetElement);
       console.log("createButton():clicked");
@@ -867,29 +855,29 @@ let view = {
       view.handler.stopRecording();
     });
 
-    addEventListenerForActualClick(button, (event) => {
+    devilentLIBS.addEventListenerForActualClick(button, (event) => {
       let clientX = event?.clientX;
       let clientY = event?.clientY;
-      view.createMenu(clientX+50, clientY + 50);
+      view.createMenu(clientX + 50, clientY + 50);
       //this.createMenuByGPT4(clientX+50,clientY+50);
     });
 
-    addEventListenerForActualClick(document.body, (event) => {
+    devilentLIBS.addEventListenerForActualClick(document.body, (event) => {
       if (event.target.tagName === "INPUT") {
         if (model.supportedInputTypeList.includes(event.target.type)) {
-          moveToElement(button, event.target);
+          devilentLIBS.moveToElement(button, event.target);
         }
       } else if (
         event.target.tagName === "TEXTAREA" ||
         devilentLIBS.isEditableElement(event.target) === true
       ) {
-        moveToElement(button, event.target);
+        devilentLIBS.moveToElement(button, event.target);
       }
       console.log(
         event.target,
         devilentLIBS.isEditableElement(event.target)
           ? "editable"
-          : "noneditable",
+          : "noneditable"
       );
     });
 
@@ -905,7 +893,7 @@ let view = {
   },
   monitorFocus() {
     let focusHandler = (element) => {
-      moveToElement(this.elem.voiceButton, element);
+      devilentLIBS.moveToElement(this.elem.voiceButton, element);
     };
 
     setInterval(() => {
@@ -952,7 +940,7 @@ let view = {
                 console.log(
                   "New ",
                   addedNode.id || addedNode.name,
-                  "gained focus",
+                  "gained focus"
                 );
               });
             }
@@ -964,7 +952,7 @@ let view = {
     observer.observe(document.body, { childList: true, subtree: true });
   },
 
-  createMenu(x, y,id='webai_input_menu') {
+  createMenu(x, y, id = "webai_input_menu") {
     // Get window dimensions
     const windowWidth = window.innerWidth;
     const windowHeight = window.innerHeight;
@@ -975,7 +963,7 @@ let view = {
       // menu already exists, update its position
       // Adjust position to keep the menu inside the window
       menuContainer.style.left =
-        Math.min(x, windowWidth - menuContainer.offsetWidth*0.5) + "px";
+        Math.min(x, windowWidth - menuContainer.offsetWidth * 0.5) + "px";
       menuContainer.style.top =
         Math.min(y, windowHeight - menuContainer.offsetHeight) - 100 + "px";
       menuContainer.style.zIndex = "99999";
@@ -985,7 +973,7 @@ let view = {
 
     // create menu container
     menuContainer = document.createElement("div");
-        // Append the menu to the body to calculate its dimensions
+    // Append the menu to the body to calculate its dimensions
     document.body.appendChild(menuContainer);
 
     menuContainer.id = id; // add an id to the menu
@@ -1022,7 +1010,6 @@ let view = {
     `;
     menuContainer.style.msOverflowStyle = "none"; // Remove scrollbar for IE and Edge (if needed)
 
-
     // Function to create a menu item
     function createMenuItem(textContent, handler) {
       const menuItem = document.createElement("button");
@@ -1046,7 +1033,7 @@ let view = {
         justify-content: flex-start;
         border-radius: 4px;
       `;
-    
+
       menuItem.textContent = textContent;
       menuItem.addEventListener("pointerdown", (event) => {
         event.preventDefault();
@@ -1054,20 +1041,16 @@ let view = {
           handler();
         }
       });
-      
+
       return menuItem;
     }
-    
-
-
 
     // create remove menu item
     const removeMenuItem = createMenuItem("Remove Menu");
     removeMenuItem.addEventListener("pointerdown", () =>
-      menuContainer.remove(),
+      menuContainer.remove()
     );
     menuContainer.appendChild(removeMenuItem);
-
 
     const closeButton = createMenuItem("Close");
     closeButton.addEventListener("pointerdown", () => {
@@ -1079,9 +1062,12 @@ let view = {
     });
     menuContainer.appendChild(closeButton);
 
-    createMenuItem('TTS', () => {
-      devilentLIBS.tts(window.getSelection().toString(), 'de-DE-SeraphinaMultilingualNeural');
-    })
+    createMenuItem("TTS", () => {
+      devilentLIBS.tts(
+        devilentLIBS.getSelectionText(),
+        "de-DE-SeraphinaMultilingualNeural"
+      );
+    });
     // create start menu item
     const startMenuItem = createMenuItem("Start");
     menuContainer.appendChild(startMenuItem);
@@ -1089,20 +1075,18 @@ let view = {
       view.handler.startRecording();
     });
 
-
-
     let copyButton = createMenuItem("Copy");
     menuContainer.appendChild(copyButton);
     copyButton.addEventListener("pointerdown", (e) => {
       e.preventDefault();
       document.execCommand("copy");
-      showToast("Copied to clipboard");
+      devilentLIBS.showToast("Copied to clipboard");
     });
 
     createMenuItem("Cut", () => {
       document.execCommand("copy");
       document.execCommand("delete");
-      showToast("Cut to clipboard");
+      devilentLIBS.showToast("Cut to clipboard");
     });
 
     let pasteButton = createMenuItem("Paste");
@@ -1111,7 +1095,7 @@ let view = {
       e.preventDefault();
       try {
         const text = await navigator.clipboard.readText();
-        writeText(document.activeElement, text);
+        devilentLIBS.writeText(document.activeElement, text);
         console.log("Clipboard text:", text);
         // Your logic to process the clipboard text
       } catch (err) {
@@ -1126,10 +1110,11 @@ let view = {
       document.execCommand("insertText", false, "\n");
     });
 
-    createMenuItem('Correct', ()=>{
-      let correctPrompt='just give answer,put answer in ``` ``` like code , neednt double quotas " " or number  ,fix mistakes of the text, make it better, you can give 2 answer for me to choose if necessary, give me one by one: ';
+    createMenuItem("Correct", () => {
+      let correctPrompt =
+        'just give answer,put answer in ``` ``` like code , neednt double quotas " " or number  ,fix mistakes of the text, make it better, you can give 2 answer for me to choose if necessary, give me one by one: ';
       view.handler.chat(correctPrompt);
-    })
+    });
 
     let askButton = createMenuItem("Ask");
     menuContainer.appendChild(askButton);
@@ -1138,13 +1123,13 @@ let view = {
       view.handler.ask();
     });
 
-    askButton.addEventListener("pointerup", () => {
+    document.body.addEventListener("pointerup", () => {
       view.handler.stopRecording();
     });
     // add menu to the body
 
     menuContainer.style.left =
-      Math.min(x, windowWidth - menuContainer.offsetWidth*0.5) + "px";
+      Math.min(x, windowWidth - menuContainer.offsetWidth * 0.5) + "px";
     menuContainer.style.top =
       Math.min(y, windowHeight - menuContainer.offsetHeight) - 100 + "px";
     document.body.appendChild(menuContainer);
@@ -1222,29 +1207,27 @@ let view = {
   },
 
   handler: {
-    async chat(message){
-      
-      
-      let selectionString = window.getSelection().toString();
-      let userText = message+ (selectionString);
-       
+    async chat(message) {
+      let selectionString = devilentLIBS.getSelectionText();
+      let userText = message + selectionString;
+
       if (devilentLIBS.checkValidString(userText) === false) {
         console.log("chat(): invalid userText:", userText);
         return;
       }
-     
+
       devilentLIBS.displayMarkdown(userText + " please wait");
       devilentLIBS.leptonSimpleComplete(userText);
-    }
-    ,
+    },
     async ask() {
       let startTime = Date.now();
       let audioblob = await view.recorder.startRecording(view.elem.voiceButton);
       //console.log(await blobToBase64(audioblob))
 
       if (Date.now() - startTime < model.minimalRecordTime) {
-        showToast("time too short, this will not transcribe");
-        devilentLIBS.leptonSimpleComplete(window.getSelection().toString());
+        devilentLIBS.showToast("time too short, this will not transcribe");
+        console.log("ask():", devilentLIBS.getSelectionText()  );
+        devilentLIBS.leptonSimpleComplete(devilentLIBS.getSelectionText());
         return;
       }
 
@@ -1261,7 +1244,7 @@ let view = {
         console.log("ask(): invalid userText:", userText);
         return;
       }
-      userText = userText + '\n\n\n';
+      userText = userText;
       devilentLIBS.displayMarkdown(userText + " please wait");
       devilentLIBS.leptonSimpleComplete(userText);
     },
@@ -1271,7 +1254,7 @@ let view = {
       //console.log(await blobToBase64(audioblob))
 
       if (Date.now() - startTime < model.minimalRecordTime) {
-        showToast("time too short, this will not transcribe");
+        devilentLIBS.showToast("time too short, this will not transcribe");
         return;
       }
 
@@ -1280,7 +1263,7 @@ let view = {
         console.log("transcribe failed, try alternative way");
         transcribe = await whisperjaxws(audioblob);
       }
-      writeText(document.activeElement, transcribe);
+      devilentLIBS.writeText(document.activeElement, transcribe);
     },
     stopRecording(safeStop = true) {
       model.isRecording = false;
@@ -1346,10 +1329,10 @@ async function sendAudioToLeptonWhisperApi(blob, language, base64prifix) {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          input: base64prifix + (await blobToBase64(blob)),
+          input: base64prifix + (await devilentLIBS.blobToBase64(blob)),
           language: language || "",
         }),
-      },
+      }
     );
 
     if (!response.ok) {
@@ -1376,7 +1359,7 @@ async function sendAudioToLeptonWhisperApi(blob, language, base64prifix) {
 async function whisperjaxws(blob) {
   // Create a new WebSocket connection to the specified URL
   const socket = new WebSocket(
-    "wss://sanchit-gandhi-whisper-jax.hf.space/queue/join",
+    "wss://sanchit-gandhi-whisper-jax.hf.space/queue/join"
   );
 
   // Connection opened event handler
@@ -1403,7 +1386,7 @@ async function whisperjaxws(blob) {
         // Validate input values
         if (isNaN(min) || isNaN(max) || min >= max) {
           throw new Error(
-            "Invalid min or max values. min must be less than max.",
+            "Invalid min or max values. min must be less than max."
           );
         }
 
@@ -1419,13 +1402,13 @@ async function whisperjaxws(blob) {
       if (data.msg === "send_hash") {
         // The server is expecting a session hash
         socket.send(
-          JSON.stringify({ fn_index: 0, session_hash: session_hash }),
+          JSON.stringify({ fn_index: 0, session_hash: session_hash })
         );
       } else if (data.msg === "send_data") {
         // The server is ready to receive data
         // Prepare your audio/wav data in base64 format
         const base64Audio =
-          "data:audio/wav;base64," + (await blobToBase64(blob)); // Replace with actual base64 audio data
+          "data:audio/wav;base64," + (await devilentLIBS.blobToBase64(blob)); // Replace with actual base64 audio data
         socket.send(
           JSON.stringify({
             data: [
@@ -1436,7 +1419,7 @@ async function whisperjaxws(blob) {
             event_data: null,
             fn_index: 0,
             session_hash: session_hash,
-          }),
+          })
         );
       } else if (data.msg === "estimation") {
         // Handle queue estimation message
@@ -1476,7 +1459,7 @@ async function sendAudioToCFWhisperApi(blob) {
           // Add other headers required by the API
         },
         body: audioData,
-      },
+      }
     );
 
     if (!response.ok) {
@@ -1520,7 +1503,7 @@ async function sendAudioToHFWhisperApi(blob) {
           // Add other headers required by the API
         },
         body: audioData,
-      },
+      }
     );
 
     if (!response.ok) {
