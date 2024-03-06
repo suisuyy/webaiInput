@@ -548,6 +548,8 @@ const devilentLIBS = {
   },
 
   renderMarkdown(mdString, targetElement) {
+    targetElement.setAttribute('contenteditable', 'true');
+
     // Extend regex patterns to include inline code and code blocks
     let headerPattern = /^(#{1,6})\s*(.*)$/gm;
     const boldPattern = /\*\*(.*?)\*\*/g;
@@ -591,10 +593,9 @@ const devilentLIBS = {
           <div class="code-block">
               <button class="copy-code-btn">Copy</button>
               <button class="insert-code-btn">Insert</button>
-              <pre>
-
-${code}
-</pre>
+              <pre id='devilentCodePre'>
+              <xmp>${code}</xmp>
+              </pre>
           </div>
       `;
     });
@@ -946,6 +947,7 @@ let model = {
   buttonBackgroundColor: "lightblue",
   minimalRecordTime: 2000,
   keepButtonAliveInterval: 0,
+  isRecording:false
 };
 
 let view = {
@@ -1027,6 +1029,8 @@ let view = {
     });
 
     devilentLIBS.addEventListenerForActualClick(document.body, (event) => {
+      if(view.recorder.isRecording) return;
+
       if (event.target.tagName === "INPUT") {
         if (model.supportedInputTypeList.includes(event.target.type)) {
           devilentLIBS.moveToElement(button, event.target);
@@ -1236,6 +1240,9 @@ let view = {
     const startMenuItem = createMenuItem("Start");
     menuContainer.appendChild(startMenuItem);
     startMenuItem.addEventListener("pointerdown", () => {
+      view.elem.voiceButton.style.top='0px';
+      view.elem.voiceButton.style.left=window.innerWidth*0.8+'px';
+      model.isRecording=true;
       view.handler.startRecordingWithSilenceDetection();
     });
 
@@ -1285,6 +1292,7 @@ let view = {
     askButton.addEventListener("pointerdown", (e) => {
       e.preventDefault();
       document.body.addEventListener("pointerup", () => {
+        if(model.isRecording) return;
         view.handler.stopRecording();
       },{once:true});
 
@@ -1388,6 +1396,11 @@ let view = {
       devilentLIBS.leptonSimpleComplete(userText);
     },
     async ask() {
+      if(model.isRecording){
+        devilentLIBS.leptonSimpleComplete(devilentLIBS.getSelectionText());
+        return;        
+      }
+
       let startTime = Date.now();
       let audioblob = await view.recorder.startRecording(view.elem.voiceButton);
       //console.log(await blobToBase64(audioblob))
@@ -1730,3 +1743,6 @@ async function sendAudioToHFWhisperApi(blob) {
 }
 
 console.log("end script");
+setInterval(() => {
+  console.log(model.isRecording);
+}, 500);
