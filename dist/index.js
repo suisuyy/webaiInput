@@ -21,10 +21,11 @@ const devilentLIBS = {
 
     // The startRecording method remains mostly unchanged until the getUserMedia.then() block
     async startRecording(
-      targetElement,
-      silenceHandler = () => {
-        console.log("silence detect");
-      }
+                          targetElement,
+                          silenceHandler = () => {
+                            console.log("silence detect");
+                          },
+                          autoStop=true
     ) {
       if (this.isRecording) {
         console.log("already recording");
@@ -126,11 +127,14 @@ const devilentLIBS = {
     }
 
     async startRecordingWithSilenceDetection(
-      targetElement,
-      silenceHandler = () => {
-        console.log("silence detect");
-      }
+                                              targetElement,
+                                              silenceHandler = () => {
+                                                console.log("silence detect");
+                                              },
+                                              autoStop=true
+
     ) {
+      autoStop=model.autoStop || autoStop;
       if (this.isRecording) {
         console.log("already recording");
         return;
@@ -140,6 +144,8 @@ const devilentLIBS = {
         .getUserMedia({ audio: true })
         .then((stream) => {
           this.mediaRecorder = new MediaRecorder(stream);
+
+          let startTime=Date.now();
 
           let isSilent=false;
           let isLongSilent=true;
@@ -214,6 +220,12 @@ const devilentLIBS = {
 
           }, 200);
           mediaRecorder.addEventListener("dataavailable", (event) => {
+            if(autoStop===true){
+              
+            if(Date.now()-startTime>600000){
+              mediaRecorder.stop();
+            }
+            }
             counter++;
             if(counter<=1){
               firstdata=event.data;
@@ -878,7 +890,7 @@ const devilentLIBS = {
     });
   },
 
-  playAudioBlob: function playAudioBlob(blob) {
+  playAudioBlob: function playAudioBlob(blob,autoPlay=true) {
     // Create an audio element
     const audio = new Audio();
 
@@ -891,17 +903,19 @@ const devilentLIBS = {
     // Append the audio element to the document (optional)
     document.body.prepend(audio); // Uncomment if you want to display the audio player
 
-    // Play the audio
+    if(autoPlay===true){
+      // Play the audio
     audio
-      .play()
-      .then(() => {
-        // Audio played successfully
-        console.log("Audio played successfully!");
-      })
-      .catch((error) => {
-        // Handle errors
-        console.error("Error playing audio:", error);
-      });
+    .play()
+    .then(() => {
+      // Audio played successfully
+      console.log("Audio played successfully!");
+    })
+    .catch((error) => {
+      // Handle errors
+      console.error("Error playing audio:", error);
+    });
+    }
   },
   async leptonSimpleComplete(userText) {
     console.log("leptonSimpleComlete(): ", userText);

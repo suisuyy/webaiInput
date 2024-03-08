@@ -17,8 +17,8 @@ testButton.addEventListener("pointerdown", () => {
   //
 });
 
-function playandTranscribe(blob) {
-  devilentLIBS.playAudioBlob(blob);
+function playandTranscribe(blob,autoPlay=false) {
+  devilentLIBS.playAudioBlob(blob,autoPlay=false);
 
   function dipslayResult(text, name) {
     textarea.value = name + ": " + text + "\n\n" + textarea.value;
@@ -49,14 +49,11 @@ document.querySelector("#start").addEventListener("click", async () => {
   console.log("start");
   textarea.value = "";
   let blob = await rec.startRecordingWithSilenceDetection(stopButton,(audioBlob)=>{
-  playandTranscribe(audioBlob);
+  playandTranscribe(audioBlob,autoPlay=false);
 
   });
 
-  //        rec.startRecording(document.body,playAudioBlob)
-  //      rec.startRecording(document.body,blobToBase64)
-
-  playandTranscribe(blob);
+ 
 });
 
 document.querySelector("#stop").addEventListener("click", () => {
