@@ -20,11 +20,11 @@ const devilentLIBS = {
 
     // The startRecording method remains mostly unchanged until the getUserMedia.then() block
     async startRecording(
-                          targetElement,
-                          silenceHandler = () => {
-                            console.log("silence detect");
-                          },
-                          autoStop=true
+      targetElement,
+      silenceHandler = () => {
+        console.log("silence detect");
+      },
+      autoStop = true
     ) {
       if (this.isRecording) {
         console.log("already recording");
@@ -72,8 +72,8 @@ const devilentLIBS = {
                 silenceHandler();
               }
             }
-            else{
-              silenceStart=Date.now();
+            else {
+              silenceStart = Date.now();
             }
 
             let scale = 3 + averageVolume / 15;
@@ -126,14 +126,14 @@ const devilentLIBS = {
     }
 
     async startRecordingWithSilenceDetection(
-                                              targetElement,
-                                              silenceHandler = () => {
-                                                console.log("silence detect");
-                                              },
-                                              autoStop=true
+      targetElement,
+      silenceHandler = () => {
+        console.log("silence detect");
+      },
+      autoStop = true
 
     ) {
-      autoStop=model.autoStop || autoStop;
+      autoStop = model.autoStop || autoStop;
       if (this.isRecording) {
         console.log("already recording");
         return;
@@ -144,10 +144,10 @@ const devilentLIBS = {
         .then((stream) => {
           this.mediaRecorder = new MediaRecorder(stream);
 
-          let startTime=Date.now();
+          let startTime = Date.now();
 
-          let isSilent=false;
-          let isLongSilent=true;
+          let isSilent = false;
+          let isLongSilent = true;
           let silenceStart = Date.now();
           let silenceDuration = 0;
 
@@ -178,32 +178,32 @@ const devilentLIBS = {
               sum += dataArray[i];
             }
             let averageVolume = sum / bufferLength;
-//            console.log(averageVolume);
+            //            console.log(averageVolume);
 
             if (averageVolume < 15) {
-              if(isSilent){
+              if (isSilent) {
                 silenceDuration = Date.now() - silenceStart;
-                if(silenceDuration>3000){
-                  isLongSilent=true;
+                if (silenceDuration > 3000) {
+                  isLongSilent = true;
                   mediaRecorder.requestData();
-                  silenceStart=Date.now();
+                  silenceStart = Date.now();
                 }
               }
-              else{
+              else {
                 silenceDuration = Date.now() - silenceStart;
                 if (silenceDuration > 1000) {
-                  isSilent=true;
+                  isSilent = true;
                   console.log('change isSilent to true');
 
                   mediaRecorder.requestData();
                 }
               }
-              
+
             }
-            else{
-              isSilent=false;
-              isLongSilent=false;
-              silenceStart=Date.now();
+            else {
+              isSilent = false;
+              isLongSilent = false;
+              silenceStart = Date.now();
             }
 
             let scale = 3 + averageVolume / 15;
@@ -212,35 +212,35 @@ const devilentLIBS = {
           volumeInterval = setInterval(handleAudioData, 100);
 
           //when silence, it will trigger dataavailable event, for normal case , dataavalable only occure on stop recording
-          let counter=0;
+          let counter = 0;
           let firstdata;
           setTimeout(() => {
             mediaRecorder.requestData();
 
           }, 200);
           mediaRecorder.addEventListener("dataavailable", (event) => {
-            if(autoStop===true){
-              
-            if(Date.now()-startTime>600000){
-              mediaRecorder.stop();
-            }
+            if (autoStop === true) {
+
+              if (Date.now() - startTime > 600000) {
+                mediaRecorder.stop();
+              }
             }
             counter++;
-            if(counter<=1){
-              firstdata=event.data;
-              if (event.data.size > 0 ) {
+            if (counter <= 1) {
+              firstdata = event.data;
+              if (event.data.size > 0) {
                 audioChunks.push(event.data);
               }
               return;
             }
-            console.log("dataavailable",event.data);
-            if(isLongSilent){
-            console.log("dataavailable,Long silent will do noting",event.data);
+            console.log("dataavailable", event.data);
+            if (isLongSilent) {
+              console.log("dataavailable,Long silent will do noting", event.data);
               return;
             }
 
-            silenceHandler(new Blob([firstdata,event.data],{ type: mediaRecorder.mimeType }) );
-            
+            silenceHandler(new Blob([firstdata, event.data], { type: mediaRecorder.mimeType }));
+
           });
 
           return new Promise((resolve, reject) => {
@@ -291,9 +291,9 @@ const devilentLIBS = {
     if (text && voice) {
       fetch(
         "https://devilent-azuretts.hf.space/synthesize/" +
-          encodeURIComponent(text) +
-          "?voicename=" +
-          encodeURIComponent(voice)
+        encodeURIComponent(text) +
+        "?voicename=" +
+        encodeURIComponent(voice)
       )
         .then((response) => response.blob())
         .then((blob) => {
@@ -343,6 +343,79 @@ const devilentLIBS = {
         })
         .catch(console.error);
     }
+  },
+  fgpt_tts: function (text,speaker) {
+    let corsproxy = "https://corsp.suisuy.eu.org?"
+    let tts_config = {
+      speaker: 'shimmer',
+      available_speaker: ["Rachel",
+        "Clyde", "Domi", "Dave", "Fin", "makima", "hutao_en", "ganyu_en", "yae_miko_en",
+        "raiden_shogun_en", "keqing_en",
+        "alloy", "echo", "fable", "onyx", "nova", "shimmer"
+      ],
+      provider: "OPENAI"
+    };
+    let audioContainer = document.getElementById('devlent_tts_audio_container');
+    if (!audioContainer) {
+      audioContainer = document.createElement('div'); // Container for audio and hide button
+      audioContainer.id = "devlent_tts_audio_container"
+      document.body.appendChild(audioContainer);
+      audioContainer.style.position = 'fixed';
+      audioContainer.style.bottom = '0';
+
+    }
+
+    fetch(corsproxy + "https://backend-k8s.flowgpt.com/audio/stream", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjdnaC1MSWQ4VHVoMjhYM1E4ajJ0dSIsImVtYWlsIjoic3Vpc3V5dXNAZ21haWwuY29tIiwic3ViIjoiN2doLUxJZDhUdWgyOFgzUThqMnR1IiwiaWF0IjoxNzEyNzUzNzEyLjIzLCJleHAiOjE3MTMzNTg1MTJ9.Fbt9U86mVWbP2-R4vSkDkZXhgvb_GTli0Pus6GK88jlZVqNFZvb246BwW35oqzqOsjEmfylWW7dQj9WWOrtEn4DEHDzyyi09YRNAAoAZJtPMuwnwFTe0V3K3QtHS5GDssjjQVnMAJyQgGhmVx3shMWj9KYGlLs6_fp0ZEXDf0XdpAOqlvdFGliH1MPqdO-q6xql7Fc8utFWVpale95gkLaSI03Sz6tPsgk_qrBx6BF8NiEIBT5EL0P5ZYuKdGU3qvQo__HCYUwDcoAo4vYYOwZecMqIDYAB1sBnYxCd9vN-YVSOBcVVdzi3P043yymXEvYTyRj39yfq9UGv63VFiAA"
+      },
+      body: JSON.stringify({
+        modelId: tts_config.speaker.toLocaleLowerCase(),
+        text: text,
+        provider: "OPENAI",
+        options: {
+          name: tts_config.speaker,
+          model: "tts-1",
+          provider: "OPENAI"
+        }
+      })
+    })
+      .then(response => response.blob())
+      .then(blob => {
+        const audioURL = URL.createObjectURL(blob);
+
+        // Add audio and hide button to container
+        audioContainer.innerHTML = ''; // Clear previous audio
+
+
+        let audio = document.createElement('audio');
+        audio.src = audioURL;
+        audio.controls = true;
+        audioContainer.style.display = 'flex';
+        audioContainer.appendChild(audio);
+
+
+        // Create hide button
+        const hideButton = document.createElement('button');
+        hideButton.textContent = 'Hide';
+        hideButton.addEventListener('click', () => {
+          audioContainer.style.display = 'none';
+        });
+        hideButton.style.backgroundColor = '#f0f0f0'; // Light gray background
+        hideButton.style.border = '1px solid #ccc'; // Subtle border
+        hideButton.style.borderRadius = '4px'; // Slight rounded corners
+        hideButton.style.padding = '5px 10px'; // Padding for visual comfort
+        hideButton.style.cursor = 'pointer';
+        hideButton.style.height = audio.clientHeight + 'px';
+        audioContainer.appendChild(hideButton);
+
+        audio.play();
+      })
+      .catch(error => console.error("Error:", error));
+
+
   },
 
   checkValidString(str) {
@@ -820,9 +893,8 @@ const devilentLIBS = {
   moveToElement: (mElem, targetElement, alwayInWindow = true) => {
     const rect = targetElement.getBoundingClientRect();
     // The rect object contains the position information
-    let x = rect.left + rect.width * 0.85; // X position relative to the window
+    let x = rect.left + rect.width * 0.95+100; // X position relative to the window
     let y = rect.top;
-    x = Math.max(x, 300);
     if (alwayInWindow) {
       x = Math.abs(x);
       y = Math.abs(y);
@@ -889,7 +961,7 @@ const devilentLIBS = {
     });
   },
 
-  playAudioBlob: function playAudioBlob(blob,autoPlay=true) {
+  playAudioBlob: function playAudioBlob(blob, autoPlay = true) {
     // Create an audio element
     const audio = new Audio();
 
@@ -902,18 +974,18 @@ const devilentLIBS = {
     // Append the audio element to the document (optional)
     document.body.prepend(audio); // Uncomment if you want to display the audio player
 
-    if(autoPlay===true){
+    if (autoPlay === true) {
       // Play the audio
-    audio
-    .play()
-    .then(() => {
-      // Audio played successfully
-      console.log("Audio played successfully!");
-    })
-    .catch((error) => {
-      // Handle errors
-      console.error("Error playing audio:", error);
-    });
+      audio
+        .play()
+        .then(() => {
+          // Audio played successfully
+          console.log("Audio played successfully!");
+        })
+        .catch((error) => {
+          // Handle errors
+          console.error("Error playing audio:", error);
+        });
     }
   },
   async leptonSimpleComplete(userText) {
@@ -923,7 +995,7 @@ const devilentLIBS = {
     }
     let response = await fetch(
       devilentLIBS.config.corsproxy_url +
-        devilentLIBS.config.lepton_api.completion_url.mixtral,
+      devilentLIBS.config.lepton_api.completion_url.mixtral,
       {
         headers: {
           accept: "*/*",
@@ -961,7 +1033,7 @@ let model = {
   buttonBackgroundColor: "lightblue",
   minimalRecordTime: 2000,
   keepButtonAliveInterval: 0,
-  isRecording:false
+  isRecording: false
 };
 
 let view = {
@@ -1043,7 +1115,7 @@ let view = {
     });
 
     devilentLIBS.addEventListenerForActualClick(document.body, (event) => {
-      if(view.recorder.isRecording) return;
+      if (view.recorder.isRecording) return;
 
       if (event.target.tagName === "INPUT") {
         if (model.supportedInputTypeList.includes(event.target.type)) {
@@ -1180,6 +1252,7 @@ let view = {
     menuContainer.style.flexDirection = "column";
     menuContainer.style.alignItems = "flex-start";
     menuContainer.style.padding = "10px";
+    menuContainer.style.opacity = '0.7'
     devilentLIBS.disableSelect(menuContainer);
 
     menuContainer.style.maxHeight = "60vh"; // Set max-height to 60vh
@@ -1245,7 +1318,7 @@ let view = {
     menuContainer.appendChild(closeButton);
 
     createMenuItem("TTS", () => {
-      devilentLIBS.tts(
+      devilentLIBS.fgpt_tts(
         devilentLIBS.getSelectionText(),
         "de-DE-SeraphinaMultilingualNeural"
       );
@@ -1254,9 +1327,9 @@ let view = {
     const startMenuItem = createMenuItem("Start");
     menuContainer.appendChild(startMenuItem);
     startMenuItem.addEventListener("pointerdown", () => {
-      view.elem.voiceButton.style.top='0px';
-      view.elem.voiceButton.style.left=window.innerWidth*0.8+'px';
-      model.isRecording=true;
+      view.elem.voiceButton.style.top = '0px';
+      view.elem.voiceButton.style.left = window.innerWidth * 0.8 + 'px';
+      model.isRecording = true;
       view.handler.startRecordingWithSilenceDetection();
     });
 
@@ -1297,7 +1370,7 @@ let view = {
 
     createMenuItem("Correct", () => {
       let correctPrompt =
-        'just give answer,put answer in ``` ``` like code , neednt double quotas " " or number  ,fix mistakes of the text, make it better, you can give 2 answer for me to choose if necessary, give me one by one: ';
+        'fix mistakes of the text, make it better:\n ';
       view.handler.chat(correctPrompt);
     });
 
@@ -1306,16 +1379,16 @@ let view = {
     askButton.addEventListener("pointerdown", (e) => {
       e.preventDefault();
       document.body.addEventListener("pointerup", () => {
-        if(model.isRecording) return;
+        if (model.isRecording) return;
         view.handler.stopRecording();
-      },{once:true});
+      }, { once: true });
 
       view.handler.ask();
-      
-    
+
+
     });
 
-    
+
     // add menu to the body
 
     menuContainer.style.left =
@@ -1410,9 +1483,9 @@ let view = {
       devilentLIBS.leptonSimpleComplete(userText);
     },
     async ask() {
-      if(model.isRecording){
+      if (model.isRecording) {
         devilentLIBS.leptonSimpleComplete(devilentLIBS.getSelectionText());
-        return;        
+        return;
       }
 
       let startTime = Date.now();
@@ -1464,23 +1537,23 @@ let view = {
       //todo
       let startTime = Date.now();
       let finalAudioblob = await view.recorder.startRecordingWithSilenceDetection(view.elem.voiceButton,
-          (audoBlob=>{
-              sendAudioToLeptonWhisperApi(audoBlob).then(transcribe=>{
-              if (transcribe === false) {
-                  console.log("transcribe failed, try alternative way");
-                  whisperjaxws(audoBlob).then(transcribe=>{
-                  devilentLIBS.writeText(document.activeElement, transcribe);
-                  });
-                  
-              }
-              else{
+        (audoBlob => {
+          sendAudioToLeptonWhisperApi(audoBlob).then(transcribe => {
+            if (transcribe === false) {
+              console.log("transcribe failed, try alternative way");
+              whisperjaxws(audoBlob).then(transcribe => {
+                devilentLIBS.writeText(document.activeElement, transcribe);
+              });
+
+            }
+            else {
               devilentLIBS.writeText(document.activeElement, transcribe);
 
-              }
-      });
+            }
+          });
 
-      
-      }));
+
+        }));
       //console.log(await blobToBase64(audioblob))
 
       if (Date.now() - startTime < model.minimalRecordTime) {
