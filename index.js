@@ -7,6 +7,12 @@ const devilentLIBS = {
       },
       api_token: ["jl9xg3km3plgxmtk835jvjmzra3x2qzf"],
     },
+    zIndex:{
+      highest: 999999,
+      higher: 99999,
+      high: 9999,
+      medium: 999
+    }
   },
   Recorder: class Recorder {
     constructor(apiKey) {
@@ -362,6 +368,8 @@ const devilentLIBS = {
       document.body.appendChild(audioContainer);
       audioContainer.style.position = 'fixed';
       audioContainer.style.bottom = '0';
+      audioContainer.style.zIndex = this.config.zIndex.highest;
+
 
     }
 
@@ -409,7 +417,7 @@ const devilentLIBS = {
         hideButton.style.padding = '5px 10px'; // Padding for visual comfort
         hideButton.style.cursor = 'pointer';
         hideButton.style.height = audio.clientHeight + 'px';
-        audioContainer.appendChild(hideButton);
+        audioContainer.prepend(hideButton);
 
         audio.play();
       })
@@ -1830,6 +1838,3 @@ async function sendAudioToHFWhisperApi(blob) {
 }
 
 console.log("end script");
-setInterval(() => {
-  console.log(model.isRecording);
-}, 500);
