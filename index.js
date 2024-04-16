@@ -7,7 +7,7 @@ const devilentLIBS = {
       },
       api_token: ["jl9xg3km3plgxmtk835jvjmzra3x2qzf"],
     },
-    zIndex:{
+    zIndex: {
       highest: 999999,
       higher: 99999,
       high: 9999,
@@ -100,6 +100,7 @@ const devilentLIBS = {
               clearInterval(volumeInterval);
               const audioBlob = new Blob(audioChunks, {
                 type: this.encodeType,
+        
               });
               targetElement.style.transform = `scale(1)`; // Next
               targetElement.style.background = "transparent";
@@ -350,7 +351,7 @@ const devilentLIBS = {
         .catch(console.error);
     }
   },
-  fgpt_tts: function (text,speaker) {
+  fgpt_tts: function (text, speaker) {
     let corsproxy = "https://corsp.suisuy.eu.org?"
     let tts_config = {
       speaker: 'shimmer',
@@ -425,7 +426,34 @@ const devilentLIBS = {
 
 
   },
+  whisper_android: async (audioBlob) => {
+    let  file = new File([audioBlob], "audio.mp3", { type: 'audio/mpeg', lastModified: new Date() });
 
+
+    let corsp = 'https://corsp.suisuy.eu.org?'
+     corsp=''
+
+    const form = new FormData();
+
+    // form.append('filename', 'audio.wav');
+    // form.append('type', 'audio/wav')
+    form.append('file', file);
+
+    let startTime = Date.now();
+    let res = await fetch(corsp + 'https://aiapi.suisuy.workers.dev/transcribe', {
+      method: 'POST',
+      body: form,
+    })
+    res = await res.json();
+    console.log(res, Date.now() - startTime);
+    return res;
+
+
+
+  },
+  stt: async (audioBlob)=>{
+    return await devilentLIBS.whisper_android(audioBlob);
+  },
   checkValidString(str) {
     if (str === undefined || str === null || str.trim() === "") {
       return false;
@@ -901,7 +929,7 @@ const devilentLIBS = {
   moveToElement: (mElem, targetElement, alwayInWindow = true) => {
     const rect = targetElement.getBoundingClientRect();
     // The rect object contains the position information
-    let x = rect.left + rect.width * 0.95+100; // X position relative to the window
+    let x = rect.left + rect.width * 0.95 + 100; // X position relative to the window
     let y = rect.top;
     if (alwayInWindow) {
       x = Math.abs(x);
@@ -1507,14 +1535,14 @@ let view = {
         return;
       }
 
-      let transcribe = await sendAudioToLeptonWhisperApi(audioblob);
+      let transcribe = await devilentLIBS.stt(audioblob);
       if (!transcribe) {
         console.log("transcribe failed, try alternative way");
         transcribe = await whisperjaxws(audioblob);
       }
       let selectionString = window.getSelection().toString();
       let userText = devilentLIBS.checkValidString(selectionString)
-        ? `"${selectionString}" ${transcribe}`
+        ? `"${selectionString}" ${transcribe.text}`
         : transcribe;
       if (devilentLIBS.checkValidString(userText) === false) {
         console.log("ask(): invalid userText:", userText);
@@ -1534,19 +1562,19 @@ let view = {
         return;
       }
 
-      let transcribe = await sendAudioToLeptonWhisperApi(audioblob);
-      if (transcribe === false) {
+      let transcribe = await devilentLIBS.stt(audioblob);
+      if (!transcribe ) {
         console.log("transcribe failed, try alternative way");
         transcribe = await whisperjaxws(audioblob);
       }
-      devilentLIBS.writeText(document.activeElement, transcribe);
+      devilentLIBS.writeText(document.activeElement, transcribe.text);
     },
     async startRecordingWithSilenceDetection(event) {
       //todo
       let startTime = Date.now();
       let finalAudioblob = await view.recorder.startRecordingWithSilenceDetection(view.elem.voiceButton,
         (audoBlob => {
-          sendAudioToLeptonWhisperApi(audoBlob).then(transcribe => {
+          devilentLIBS.stt(audoBlob).then(transcribe => {
             if (transcribe === false) {
               console.log("transcribe failed, try alternative way");
               whisperjaxws(audoBlob).then(transcribe => {
@@ -1555,7 +1583,7 @@ let view = {
 
             }
             else {
-              devilentLIBS.writeText(document.activeElement, transcribe);
+              devilentLIBS.writeText(document.activeElement, transcribe.text);
 
             }
           });
