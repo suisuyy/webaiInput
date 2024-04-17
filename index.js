@@ -2,8 +2,12 @@ const devilentLIBS = {
   config: {
     corsproxy_url: ["https://corsp.suisuy.eu.org?"],
     lepton_api: {
-      completion_url: {
-        mixtral: "https://mixtral-8x7b.lepton.run/api/v1/chat/completions",
+      llm_models:{
+        wizardlm8x22b:{
+          url:'https://wizardlm-2-8x22b.lepton.run/api/v1/chat/completions',
+          name:'wizardlm-2-8x22b'
+        },
+        mixtral: {url:"https://mixtral-8x7b.lepton.run/api/v1/chat/completions",name:"mixtral-8x7b"}
       },
       api_token: ["jl9xg3km3plgxmtk835jvjmzra3x2qzf"],
     },
@@ -140,7 +144,7 @@ const devilentLIBS = {
       autoStop = true
 
     ) {
-      autoStop = model.autoStop || autoStop;
+      autoStop = appModel.autoStop || autoStop;
       if (this.isRecording) {
         console.log("already recording");
         return;
@@ -1075,7 +1079,7 @@ const devilentLIBS = {
     }
     let response = await fetch(
       devilentLIBS.config.corsproxy_url +
-      devilentLIBS.config.lepton_api.completion_url.mixtral,
+      appModel.llm_model.url,
       {
         headers: {
           accept: "*/*",
@@ -1084,7 +1088,7 @@ const devilentLIBS = {
         },
         body: JSON.stringify({
           messages: [{ role: "user", content: userText }],
-          model: "mixtral-8x7b",
+          model: appModel.llm_model.name,
           tools: [],
           temperature: 0.7,
           top_p: 0.8,
@@ -1098,12 +1102,12 @@ const devilentLIBS = {
     console.log("[leptonComplete(text)]", responseMessage);
     let mdContainer = document.createElement("div");
     document.body.appendChild(mdContainer);
-    devilentLIBS.displayMarkdown(userText + "\n\n" + responseMessage);
+    devilentLIBS.displayMarkdown(userText + "\n\n" + appModel.llm_model.name+'\n'+ responseMessage);
     return response;
   },
 };
 
-let model = {
+let appModel = {
   api_url: "",
   api_key: "",
   voice_button_id: "whisper_voice_button",
@@ -1113,7 +1117,8 @@ let model = {
   buttonBackgroundColor: "lightblue",
   minimalRecordTime: 2000,
   keepButtonAliveInterval: 0,
-  isRecording: false
+  isRecording: false,
+  llm_model: devilentLIBS.config.lepton_api.llm_models.wizardlm8x22b
 };
 
 let view = {
@@ -1125,7 +1130,7 @@ let view = {
     this.recorder = new devilentLIBS.Recorder();
     this.createButton();
 
-    model.keepButtonAliveInterval = setInterval(() => {
+    appModel.keepButtonAliveInterval = setInterval(() => {
       const whisperButton = document.getElementById("whisper_voice_button");
 
       if (whisperButton) {
@@ -1150,7 +1155,7 @@ let view = {
     let button = document.createElement("button");
     this.elem.voiceButton = button;
 
-    button.id = model.voice_button_id;
+    button.id = appModel.voice_button_id;
     button.innerText = "◯";
     button.type = "button"; // Ensure the button does not submit forms
     button.classList.add("speech-to-text-button");
@@ -1198,7 +1203,7 @@ let view = {
       if (view.recorder.isRecording) return;
 
       if (event.target.tagName === "INPUT") {
-        if (model.supportedInputTypeList.includes(event.target.type)) {
+        if (appModel.supportedInputTypeList.includes(event.target.type)) {
           devilentLIBS.moveToElement(button, event.target);
         }
       } else if (
@@ -1390,7 +1395,7 @@ let view = {
     const closeButton = createMenuItem("Close");
     closeButton.addEventListener("pointerdown", () => {
       if (confirm("remove the AI tool now?")) {
-        clearInterval(model.keepButtonAliveInterval);
+        clearInterval(appModel.keepButtonAliveInterval);
         view.elem.voiceButton.remove();
         menuContainer.remove();
       }
@@ -1409,7 +1414,7 @@ let view = {
     startMenuItem.addEventListener("pointerdown", () => {
       view.elem.voiceButton.style.top = '0px';
       view.elem.voiceButton.style.left = window.innerWidth * 0.8 + 'px';
-      model.isRecording = true;
+      appModel.isRecording = true;
       view.handler.startRecordingWithSilenceDetection();
     });
 
@@ -1459,7 +1464,7 @@ let view = {
     askButton.addEventListener("pointerdown", (e) => {
       e.preventDefault();
       document.body.addEventListener("pointerup", () => {
-        if (model.isRecording) return;
+        if (appModel.isRecording) return;
         view.handler.stopRecording();
       }, { once: true });
 
@@ -1563,7 +1568,7 @@ let view = {
       devilentLIBS.leptonSimpleComplete(userText);
     },
     async ask() {
-      if (model.isRecording) {
+      if (appModel.isRecording) {
         devilentLIBS.leptonSimpleComplete(devilentLIBS.getSelectionText());
         return;
       }
@@ -1572,7 +1577,7 @@ let view = {
       let audioblob = await view.recorder.startRecording(view.elem.voiceButton);
       //console.log(await blobToBase64(audioblob))
 
-      if (Date.now() - startTime < model.minimalRecordTime) {
+      if (Date.now() - startTime < appModel.minimalRecordTime) {
         devilentLIBS.showToast("time too short, this will not transcribe");
         console.log("ask():", devilentLIBS.getSelectionText());
         devilentLIBS.leptonSimpleComplete(devilentLIBS.getSelectionText());
@@ -1601,7 +1606,7 @@ let view = {
       let audioblob = await view.recorder.startRecording(view.elem.voiceButton);
       //console.log(await blobToBase64(audioblob))
 
-      if (Date.now() - startTime < model.minimalRecordTime) {
+      if (Date.now() - startTime < appModel.minimalRecordTime) {
         devilentLIBS.showToast("time too short, this will not transcribe");
         return;
       }
@@ -1636,7 +1641,7 @@ let view = {
         }));
       //console.log(await blobToBase64(audioblob))
 
-      if (Date.now() - startTime < model.minimalRecordTime) {
+      if (Date.now() - startTime < appModel.minimalRecordTime) {
         devilentLIBS.showToast("time too short, this will not transcribe");
         return;
       }
@@ -1650,7 +1655,7 @@ let view = {
     },
 
     stopRecording(safeStop = true) {
-      model.isRecording = false;
+      appModel.isRecording = false;
       if (safeStop) {
         setTimeout(() => {
           console.log("safeStop");
