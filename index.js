@@ -430,8 +430,9 @@ const devilentLIBS = {
     let  file = new File([audioBlob], "audio.mp3", { type: 'audio/mpeg', lastModified: new Date() });
 
 
-    let corsp = 'https://corsp.suisuy.eu.org?'
-     corsp=''
+    let corsp = 'https://corsp2.suisuy.eu.org?'
+    let transcribeApiUrl='https://aiapigptandroid.azurewebsites.net/transcribe'
+    
 
     const form = new FormData();
 
@@ -440,7 +441,7 @@ const devilentLIBS = {
     form.append('file', file);
 
     let startTime = Date.now();
-    let res = await fetch(corsp + 'https://aiapi.suisuy.workers.dev/transcribe', {
+    let res = await fetch(corsp + transcribeApiUrl, {
       method: 'POST',
       body: form,
     })
@@ -451,8 +452,51 @@ const devilentLIBS = {
 
 
   },
+  sendAudioToLeptonWhisperApi:async function sendAudioToLeptonWhisperApi(blob, language, base64prifix) {
+    try {
+      let showToast = devilentLIBS.showToast;
+      showToast("transcribing");
+  
+      base64prifix = base64prifix || "data:audio/mpeg;base64,";
+      // You need to replace the URL and headers with the ones provided by your online API
+      const response = await fetch(
+        `https://corsp.suisuy.eu.org/?https://whisperx.lepton.run/run`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer jl9xg3km3plgxmtk835jvjmzra3x2qzf`,
+            // Add other headers required by the API
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            input: base64prifix + (await devilentLIBS.blobToBase64(blob)),
+            language: language || "",
+          }),
+        }
+      );
+  
+      if (!response.ok) {
+        console.log(response);
+        showToast("transcribe error: " + response.statusText);
+        return false;
+      }
+  
+      const data = await response.json();
+      console.log(data);
+      if (!data[0]) {
+        showToast("transcribe error: " + JSON.stringify(data));
+        return false;
+      }
+      // You'll need to access the correct property from the response JSON based on the API's response format
+      //targetElement.value = data.results.channels[0].alternatives[0].transcript;
+      return data[0];
+    } catch (error) {
+      console.log(error);
+      return false;
+    }
+  },
   stt: async (audioBlob)=>{
-    return await devilentLIBS.whisper_android(audioBlob);
+    return await devilentLIBS.sendAudioToLeptonWhisperApi(audioBlob);
   },
   checkValidString(str) {
     if (str === undefined || str === null || str.trim() === "") {
@@ -1652,49 +1696,7 @@ async function sendAudioToApi(blob, targetElement) {
     console.error("Error sending audio to the API:", error);
   }
 }
-async function sendAudioToLeptonWhisperApi(blob, language, base64prifix) {
-  try {
-    let showToast = devilentLIBS.showToast;
-    showToast("transcribing");
 
-    base64prifix = base64prifix || "data:audio/mpeg;base64,";
-    // You need to replace the URL and headers with the ones provided by your online API
-    const response = await fetch(
-      `https://corsp.suisuy.eu.org/?https://whisperx.lepton.run/run`,
-      {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer jl9xg3km3plgxmtk835jvjmzra3x2qzf`,
-          // Add other headers required by the API
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          input: base64prifix + (await devilentLIBS.blobToBase64(blob)),
-          language: language || "",
-        }),
-      }
-    );
-
-    if (!response.ok) {
-      console.log(response);
-      showToast("transcribe error: " + response.statusText);
-      return false;
-    }
-
-    const data = await response.json();
-    console.log(data);
-    if (!data[0]?.text) {
-      showToast("transcribe error: " + JSON.stringify(data));
-      return false;
-    }
-    // You'll need to access the correct property from the response JSON based on the API's response format
-    //targetElement.value = data.results.channels[0].alternatives[0].transcript;
-    return data[0].text;
-  } catch (error) {
-    console.log(error);
-    return false;
-  }
-}
 
 async function whisperjaxws(blob) {
   // Create a new WebSocket connection to the specified URL
