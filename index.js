@@ -2,12 +2,12 @@ const devilentLIBS = {
   config: {
     corsproxy_url: ["https://corsp.suisuy.eu.org?"],
     lepton_api: {
-      llm_models:{
-        wizardlm8x22b:{
-          url:'https://wizardlm-2-8x22b.lepton.run/api/v1/chat/completions',
-          name:'wizardlm-2-8x22b'
+      llm_models: {
+        wizardlm8x22b: {
+          url: 'https://wizardlm-2-8x22b.lepton.run/api/v1/chat/completions',
+          name: 'wizardlm-2-8x22b'
         },
-        mixtral: {url:"https://mixtral-8x7b.lepton.run/api/v1/chat/completions",name:"mixtral-8x7b"}
+        mixtral: { url: "https://mixtral-8x7b.lepton.run/api/v1/chat/completions", name: "mixtral-8x7b" }
       },
       api_token: ["jl9xg3km3plgxmtk835jvjmzra3x2qzf"],
     },
@@ -16,6 +16,10 @@ const devilentLIBS = {
       higher: 99999,
       high: 9999,
       medium: 999
+    },
+    apiKey: {
+      'flowgpt': '',
+
     }
   },
   Recorder: class Recorder {
@@ -104,7 +108,7 @@ const devilentLIBS = {
               clearInterval(volumeInterval);
               const audioBlob = new Blob(audioChunks, {
                 type: this.encodeType,
-        
+
               });
               targetElement.style.transform = `scale(1)`; // Next
               targetElement.style.background = "transparent";
@@ -378,22 +382,28 @@ const devilentLIBS = {
 
     }
 
-    fetch(corsproxy + "https://backend-k8s.flowgpt.com/audio/stream", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": "Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjdnaC1MSWQ4VHVoMjhYM1E4ajJ0dSIsImVtYWlsIjoic3Vpc3V5dXNAZ21haWwuY29tIiwic3ViIjoiN2doLUxJZDhUdWgyOFgzUThqMnR1IiwiaWF0IjoxNzEyNzUzNzEyLjIzLCJleHAiOjE3MTMzNTg1MTJ9.Fbt9U86mVWbP2-R4vSkDkZXhgvb_GTli0Pus6GK88jlZVqNFZvb246BwW35oqzqOsjEmfylWW7dQj9WWOrtEn4DEHDzyyi09YRNAAoAZJtPMuwnwFTe0V3K3QtHS5GDssjjQVnMAJyQgGhmVx3shMWj9KYGlLs6_fp0ZEXDf0XdpAOqlvdFGliH1MPqdO-q6xql7Fc8utFWVpale95gkLaSI03Sz6tPsgk_qrBx6BF8NiEIBT5EL0P5ZYuKdGU3qvQo__HCYUwDcoAo4vYYOwZecMqIDYAB1sBnYxCd9vN-YVSOBcVVdzi3P043yymXEvYTyRj39yfq9UGv63VFiAA"
+
+
+
+    fetch("https://backend-k8s.flowgpt.com/audio/stream", {
+      "headers": {
+        "accept": "*/*",
+        "accept-language": "en-US,en;q=0.9",
+        "authorization": "Bearer " + devilentLIBS.config.apiKey.flowgpt,
+        "content-type": "application/json",
       },
-      body: JSON.stringify({
-        modelId: tts_config.speaker.toLocaleLowerCase(),
-        text: text,
-        provider: "OPENAI",
-        options: {
-          name: tts_config.speaker,
-          model: "tts-1",
-          provider: "OPENAI"
+      "body": `{
+        "modelId":"alloy",
+        "text":"${window.getSelection().toString()}",
+        "provider":"OPENAI",
+        "options":{
+        "name":"Alloy",
+        "model":"tts-1",
+        "provider":"OPENAI"
         }
-      })
+        }`,
+      "method": "POST",
+
     })
       .then(response => response.blob())
       .then(blob => {
@@ -431,12 +441,12 @@ const devilentLIBS = {
 
   },
   whisper_android: async (audioBlob) => {
-    let  file = new File([audioBlob], "audio.mp3", { type: 'audio/mpeg', lastModified: new Date() });
+    let file = new File([audioBlob], "audio.mp3", { type: 'audio/mpeg', lastModified: new Date() });
 
 
     let corsp = 'https://corsp2.suisuy.eu.org?'
-    let transcribeApiUrl='https://aiapigptandroid.azurewebsites.net/transcribe'
-    
+    let transcribeApiUrl = 'https://aiapigptandroid.azurewebsites.net/transcribe'
+
 
     const form = new FormData();
 
@@ -456,11 +466,11 @@ const devilentLIBS = {
 
 
   },
-  sendAudioToLeptonWhisperApi:async function sendAudioToLeptonWhisperApi(blob, language, base64prifix) {
+  sendAudioToLeptonWhisperApi: async function sendAudioToLeptonWhisperApi(blob, language, base64prifix) {
     try {
       let showToast = devilentLIBS.showToast;
       showToast("transcribing");
-  
+
       base64prifix = base64prifix || "data:audio/mpeg;base64,";
       // You need to replace the URL and headers with the ones provided by your online API
       const response = await fetch(
@@ -478,13 +488,13 @@ const devilentLIBS = {
           }),
         }
       );
-  
+
       if (!response.ok) {
         console.log(response);
         showToast("transcribe error: " + response.statusText);
         return false;
       }
-  
+
       const data = await response.json();
       console.log(data);
       if (!data[0]) {
@@ -499,7 +509,7 @@ const devilentLIBS = {
       return false;
     }
   },
-  stt: async (audioBlob)=>{
+  stt: async (audioBlob) => {
     return await devilentLIBS.sendAudioToLeptonWhisperApi(audioBlob);
   },
   checkValidString(str) {
@@ -1102,10 +1112,12 @@ const devilentLIBS = {
     console.log("[leptonComplete(text)]", responseMessage);
     let mdContainer = document.createElement("div");
     document.body.appendChild(mdContainer);
-    devilentLIBS.displayMarkdown(userText + "\n\n" + appModel.llm_model.name+'\n'+ responseMessage);
+    devilentLIBS.displayMarkdown(userText + "\n\n" + appModel.llm_model.name + '\n' + responseMessage);
     return response;
   },
 };
+
+window.devilentLIBS = devilentLIBS;
 
 let appModel = {
   api_url: "",
@@ -1126,9 +1138,15 @@ let view = {
     currentInputElem: null,
     voiceButton: null,
   },
-  init() {
+  async init() {
     this.recorder = new devilentLIBS.Recorder();
     this.createButton();
+
+    fetch('https://apikey.suisuy.eu.org/get?apikeyname=fgptkey')
+      .then(async res => {
+        console.log(devilentLIBS.config.apiKey.flowgpt = await res.text())
+      })
+
 
     appModel.keepButtonAliveInterval = setInterval(() => {
       const whisperButton = document.getElementById("whisper_voice_button");
@@ -1612,7 +1630,7 @@ let view = {
       }
 
       let transcribe = await devilentLIBS.stt(audioblob);
-      if (!transcribe ) {
+      if (!transcribe) {
         console.log("transcribe failed, try alternative way");
         transcribe = await whisperjaxws(audioblob);
       }
