@@ -570,9 +570,10 @@ const devilentLIBS = {
 
     button.addEventListener("pointerdown", function () {
       button.style.backgroundColor = "lightblue";
+        setTimeout(()=>{button.style.backgroundColor = originalColor;},1000)
     });
     document.body.addEventListener("pointerup", () => {
-      button.style.backgroundColor = originalColor;
+      
     });
   },
   showToast: function showToast(
@@ -1598,7 +1599,7 @@ let view = {
       let selectionString = window.getSelection().toString();
       let userText = devilentLIBS.checkValidString(selectionString)
         ? `"${selectionString}" ${transcribe.text}`
-        : transcribe;
+        : transcribe.text;
       if (devilentLIBS.checkValidString(userText) === false) {
         console.log("ask(): invalid userText:", userText);
         return;
@@ -1653,11 +1654,11 @@ let view = {
       }
 
       let transcribe = await sendAudioToLeptonWhisperApi(finalAudioblob);
-      if (transcribe === false) {
+      if (!transcribe ) {
         console.log("transcribe failed, try alternative way");
         transcribe = await whisperjaxws(finalAudioblob);
       }
-      devilentLIBS.writeText(document.activeElement, transcribe);
+      devilentLIBS.writeText(document.activeElement, transcribe.text);
     },
 
     stopRecording(safeStop = true) {
