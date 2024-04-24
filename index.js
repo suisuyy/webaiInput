@@ -630,19 +630,7 @@ const devilentLIBS = {
     endfix = " "
   ) {
     console.log("writeText(): ", targetElement);
-    if (
-      targetElement.tagName === "INPUT" ||
-      targetElement.tagName === "TEXTAREA" ||
-      devilentLIBS.isEditableElement(targetElement) === true
-    ) {
-      document.execCommand("insertText", false, `${prefix}${text}${endfix}`);
-      targetElement.scrollTo(100000, 1000000);
-    } else {
-      document.execCommand("insertText", false, `${prefix}${text}${endfix}`);
-      devilentLIBS.copyToClipboard(text);
-
-      // targetElement.value += ' ' + text;
-    }
+      document.execCommand("insertText", false, `${prefix}${text}${endfix}`) || devilentLIBS.copyToClipboard(text);
   },
   dragElement: function dragElement(
     elmnt,
@@ -1792,7 +1780,7 @@ async function whisperjaxws(blob) {
       } else if (data.msg === "process_completed") {
         let result = data.output.data[0];
         console.log(result);
-        resolve(result);
+        resolve({text: result});
       }
       // Add additional handling for other message types as needed
       console.log(data);
