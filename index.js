@@ -509,8 +509,52 @@ const devilentLIBS = {
       return false;
     }
   },
+  modalWhisper: async function(blob,language,base64prifix){
+    try {
+      let showToast = devilentLIBS.showToast;
+      showToast("transcribing by modal whipser");
+
+      base64prifix = base64prifix || "data:audio/mpeg;base64,";
+      // You need to replace the URL and headers with the ones provided by your online API
+      const response = await fetch(
+        `https://aiapidev.suisuy.eu.org/transcribe`,
+        {
+          method: "POST",
+          headers: {
+            // Authorization: `Bearer jl9xg3km3plgxmtk835jvjmzra3x2qzf`,
+            // Add other headers required by the API
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            audio: base64prifix + (await devilentLIBS.blobToBase64(blob)),
+            diarize_audio: false,
+
+          }),
+        }
+      );
+
+      if (!response.ok) {
+        console.log(response);
+        showToast("transcribe error: " + response.statusText);
+        return false;
+      }
+
+      const data = await response.json();
+      console.log(data);
+      if (!data.text) {
+        showToast("transcribe error: " + JSON.stringify(data));
+        return false;
+      }
+      // You'll need to access the correct property from the response JSON based on the API's response format
+      //targetElement.value = data.results.channels[0].alternatives[0].transcript;
+      return data;
+    } catch (error) {
+      console.log(error);
+      return false;
+    }
+  },
   stt: async (audioBlob) => {
-    return await devilentLIBS.sendAudioToLeptonWhisperApi(audioBlob);
+    return await devilentLIBS.modalWhisper(audioBlob);
   },
   checkValidString(str) {
     if (str === undefined || str === null || str.trim() === "") {
@@ -1577,7 +1621,7 @@ let view = {
       }
 
       let transcribe = await devilentLIBS.stt(audioblob);
-      if (!transcribe) {
+      if (!transcribe.text) {
         console.log("transcribe failed, try alternative way");
         transcribe = await whisperjaxws(audioblob);
       }
