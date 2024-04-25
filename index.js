@@ -716,8 +716,6 @@ const devilentLIBS = {
   },
 
   renderMarkdown(mdString, targetElement) {
-    targetElement.setAttribute('contenteditable', 'true');
-
     // Extend regex patterns to include inline code and code blocks
     let headerPattern = /^(#{1,6})\s*(.*)$/gm;
     const boldPattern = /\*\*(.*?)\*\*/g;
@@ -812,6 +810,23 @@ const devilentLIBS = {
     copyButton.classList.add("copy-btn");
     insertButton.classList.add("insert-btn");
 
+    let editButton=document.createElement("button");
+    editButton.innerText = "Edit";
+    editButton.addEventListener("pointerdown", (e) => {
+      e.preventDefault();
+      if(targetElement.isEditableElement){
+        targetElement.setAttribute('contenteditable', 'false');
+
+      }
+      else{
+        targetElement.setAttribute('contenteditable', 'true');
+
+      }
+      
+      // targetElement.isEditableElement=!targetElement.isEditableElement;
+    });
+    editButton.classList.add("copy-btn");
+
     const closeButton = document.createElement("button");
     closeButton.innerText = "Close";
     closeButton.addEventListener("pointerdown", (e) => {
@@ -827,6 +842,7 @@ const devilentLIBS = {
     buttonContainer.appendChild(copyButton); // Assuming copyButton and insertButton are already created
     buttonContainer.appendChild(insertButton);
     buttonContainer.appendChild(closeButton);
+    buttonContainer.appendChild(editButton);
 
     // Get the parent element (replace with the actual parent element's selector)
     const parentElement = targetElement;
@@ -973,11 +989,12 @@ const devilentLIBS = {
 
     devilentLIBS.renderMarkdown(mdString, container);
   },
-  moveToElement: (mElem, targetElement, alwayInWindow = true) => {
-    const rect = targetElement.getBoundingClientRect();
+  moveElementNearMouse: (mElem, targetElement, alwayInWindow = true,event) => {
+    // const rect = targetElement.getBoundingClientRect();
     // The rect object contains the position information
-    let x = rect.left + rect.width * 0.95 + 100; // X position relative to the window
-    let y = rect.top;
+    let x = event.clientX+200 ; // X position relative to the window
+    let y = event.clientY-20;
+    console.log('moveElementNearMouse: ',x,y);
     if (alwayInWindow) {
       x = Math.abs(x);
       y = Math.abs(y);
@@ -1211,13 +1228,13 @@ let view = {
 
       if (event.target.tagName === "INPUT") {
         if (appModel.supportedInputTypeList.includes(event.target.type)) {
-          devilentLIBS.moveToElement(button, event.target);
+          devilentLIBS.moveElementNearMouse(button, event.target,true,event);
         }
       } else if (
         event.target.tagName === "TEXTAREA" ||
         devilentLIBS.isEditableElement(event.target) === true
       ) {
-        devilentLIBS.moveToElement(button, event.target);
+        devilentLIBS.moveElementNearMouse(button, event.target,true,event);
       }
       console.log(
         event.target,
@@ -1237,66 +1254,7 @@ let view = {
 
     return button;
   },
-  monitorFocus() {
-    let focusHandler = (element) => {
-      devilentLIBS.moveToElement(this.elem.voiceButton, element);
-    };
-
-    setInterval(() => {
-      if (document.querySelector("#whisper_voice_button") === null) {
-        console.log("no voicebutton, create it now");
-        this.createButton();
-      }
-    }, 3000);
-
-    // setInterval(() => {
-    //     if(this.voiceButton===null){
-    //         this.createButton();
-
-    //     }
-    //     console.log(document.activeElement.tagName);
-    //     if(document.activeElement.tagName==='INPUT' || document.activeElement.tagName==="TEXTAREA"){
-    //         focusHandler(document.activeElement)
-    //     }
-    // }, 2000);
-
-    // Select all input and textarea elements
-    const inputElements = document.querySelectorAll("input, textarea");
-
-    // Add event listener for each element
-    inputElements.forEach((element) => {
-      element.addEventListener("focus", () => {
-        focusHandler(element);
-      });
-    });
-
-    const observer = new MutationObserver((mutations) => {
-      for (const mutation of mutations) {
-        if (mutation.type === "childList") {
-          for (const addedNode of mutation.addedNodes) {
-            if (
-              addedNode.tagName === "TEXTAREA" ||
-              addedNode.tagName === "INPUT"
-            ) {
-              // New textarea detected!
-              console.log("New textarea added:", addedNode);
-              // Add your event listener as needed
-              addedNode.addEventListener("focus", (event) => {
-                focusHandler(addedNode);
-                console.log(
-                  "New ",
-                  addedNode.id || addedNode.name,
-                  "gained focus"
-                );
-              });
-            }
-          }
-        }
-      }
-    });
-    // Observe the document body or specific container
-    observer.observe(document.body, { childList: true, subtree: true });
-  },
+ 
 
   createMenu(x, y, id = "webai_input_menu") {
     // Get window dimensions
