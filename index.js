@@ -40,10 +40,7 @@ const devilentLIBS = {
       },
       autoStop = true
     ) {
-      if (this.isRecording) {
-        console.log("already recording");
-        return;
-      }
+      this.stopRecording();
       console.log("start recording");
       return navigator.mediaDevices
         .getUserMedia({ audio: true })
@@ -149,10 +146,7 @@ const devilentLIBS = {
 
     ) {
       autoStop = appModel.autoStop || autoStop;
-      if (this.isRecording) {
-        console.log("already recording");
-        return;
-      }
+      this.stopRecording();
       console.log("start recording");
       return navigator.mediaDevices
         .getUserMedia({ audio: true })
@@ -300,172 +294,54 @@ const devilentLIBS = {
       this.isRecording = false;
 
       this.mediaRecorder?.stop();
+      this.mediaRecorder?.audioContext?.close(); // Close the audio context when done
+      this.mediaRecorder?.stream?.getTracks().forEach((track) => track.stop());
     }
   },
-  tts: function synthesizeSpeech(text, voice) {
+  tts: function synthesizeSpeech(text = 'test text', voice = 'alloy') {
     if (text && voice) {
-      fetch(
-        "https://devilent-azuretts.hf.space/synthesize/" +
-        encodeURIComponent(text) +
-        "?voicename=" +
-        encodeURIComponent(voice)
-      )
-        .then((response) => response.blob())
-        .then((blob) => {
-          let url = URL.createObjectURL(blob);
 
-          // Check if a div container with id 'devlent_tts_container' already exists
-          let container = document.getElementById("devlent_tts_container");
-          if (!container) {
-            // Create a new div container if it doesn't exist
-            container = document.createElement("div");
-            container.id = "devlent_tts_container";
-            document.body.appendChild(container);
-          }
+      let url = `https://tts.grapee.ddnsfree.com/tts/${encodeURIComponent(text)}`;
 
-          // Check if an audio element with id 'tts_audio' already exists
-          let audio = document.getElementById("tts_audio");
-          if (!audio) {
-            // Create a new audio element if it doesn't exist
-            audio = document.createElement("audio");
-            audio.id = "tts_audio";
-            container.appendChild(audio);
+      // Check if a div container with id 'devlent_tts_container' already exists
+      let container = document.getElementById("devlent_tts_container");
+      if (!container) {
+        // Create a new div container if it doesn't exist
+        container = document.createElement("div");
+        container.id = "devlent_tts_container";
+        document.body.appendChild(container);
+      }
 
-            // Create a button to hide the audio
-            let button = document.createElement("button");
-            button.innerHTML = "Hide Audio";
-            button.onclick = function () {
-              container.style.display = "none";
-            };
-            container.appendChild(button);
-          }
-          container.style.display = "block";
-          container.style.position = "fixed";
-          container.style.top = "0";
-          container.style.right = "0";
+      // Check if an audio element with id 'tts_audio' already exists
+      let audio = document.getElementById("tts_audio");
+      if (!audio) {
+        // Create a new audio element if it doesn't exist
+        audio = document.createElement("audio");
+        audio.id = "tts_audio";
+        container.appendChild(audio);
 
-          // Update the source of the audio element
-          audio.src = url;
-          audio.controls = true;
-          audio.autoplay = true;
+        // Create a button to hide the audio
+        let button = document.createElement("button");
+        button.innerHTML = "Hide Audio";
+        button.onclick = function () {
+          container.style.display = "none";
+        };
+        container.appendChild(button);
+      }
+      container.style.display = "block";
+      container.style.position = "fixed";
+      container.style.top = "0";
+      container.style.right = "0";
 
-          // Auto hide the audio after it finishes playing
-          audio.onended = function () {
-            setTimeout(function () {
-              container.style.display = "none";
-            }, 3000);
-          };
-        })
-        .catch(console.error);
-    }
-  },
-  fgpt_tts: function (text, speaker) {
-    let corsproxy = "https://corsp.suisuy.eu.org?"
-    let tts_config = {
-      speaker: 'shimmer',
-      available_speaker: ["Rachel",
-        "Clyde", "Domi", "Dave", "Fin", "makima", "hutao_en", "ganyu_en", "yae_miko_en",
-        "raiden_shogun_en", "keqing_en",
-        "alloy", "echo", "fable", "onyx", "nova", "shimmer"
-      ],
-      provider: "OPENAI"
-    };
-    let audioContainer = document.getElementById('devlent_tts_audio_container');
-    if (!audioContainer) {
-      audioContainer = document.createElement('div'); // Container for audio and hide button
-      audioContainer.id = "devlent_tts_audio_container"
-      document.body.appendChild(audioContainer);
-      audioContainer.style.position = 'fixed';
-      audioContainer.style.bottom = '0';
-      audioContainer.style.zIndex = this.config.zIndex.highest;
-
+      // Update the source of the audio element
+      audio.src = url;
+      audio.controls = true;
+      audio.autoplay = true;
 
     }
-
-
-
-
-    fetch("https://backend-k8s.flowgpt.com/audio/stream", {
-      "headers": {
-        "accept": "*/*",
-        "accept-language": "en-US,en;q=0.9",
-        "authorization": "Bearer " + devilentLIBS.config.apiKey.flowgpt,
-        "content-type": "application/json",
-      },
-      "body": `{
-        "modelId":"alloy",
-        "text":"${window.getSelection().toString()}",
-        "provider":"OPENAI",
-        "options":{
-        "name":"Alloy",
-        "model":"tts-1",
-        "provider":"OPENAI"
-        }
-        }`,
-      "method": "POST",
-
-    })
-      .then(response => response.blob())
-      .then(blob => {
-        const audioURL = URL.createObjectURL(blob);
-
-        // Add audio and hide button to container
-        audioContainer.innerHTML = ''; // Clear previous audio
-
-
-        let audio = document.createElement('audio');
-        audio.src = audioURL;
-        audio.controls = true;
-        audioContainer.style.display = 'flex';
-        audioContainer.appendChild(audio);
-
-
-        // Create hide button
-        const hideButton = document.createElement('button');
-        hideButton.textContent = 'Hide';
-        hideButton.addEventListener('click', () => {
-          audioContainer.style.display = 'none';
-        });
-        hideButton.style.backgroundColor = '#f0f0f0'; // Light gray background
-        hideButton.style.border = '1px solid #ccc'; // Subtle border
-        hideButton.style.borderRadius = '4px'; // Slight rounded corners
-        hideButton.style.padding = '5px 10px'; // Padding for visual comfort
-        hideButton.style.cursor = 'pointer';
-        hideButton.style.height = audio.clientHeight + 'px';
-        audioContainer.prepend(hideButton);
-
-        audio.play();
-      })
-      .catch(error => console.error("Error:", error));
-
-
   },
-  whisper_android: async (audioBlob) => {
-    let file = new File([audioBlob], "audio.mp3", { type: 'audio/mpeg', lastModified: new Date() });
 
-
-    let corsp = 'https://corsp2.suisuy.eu.org?'
-    let transcribeApiUrl = 'https://aiapigptandroid.azurewebsites.net/transcribe'
-
-
-    const form = new FormData();
-
-    // form.append('filename', 'audio.wav');
-    // form.append('type', 'audio/wav')
-    form.append('file', file);
-
-    let startTime = Date.now();
-    let res = await fetch(corsp + transcribeApiUrl, {
-      method: 'POST',
-      body: form,
-    })
-    res = await res.json();
-    console.log(res, Date.now() - startTime);
-    return res;
-
-
-
-  },
+ 
   sendAudioToLeptonWhisperApi: async function sendAudioToLeptonWhisperApi(blob, language, base64prifix) {
     try {
       let showToast = devilentLIBS.showToast;
@@ -509,7 +385,7 @@ const devilentLIBS = {
       return false;
     }
   },
-  modalWhisper: async function(blob,language,base64prifix){
+  modalWhisper: async function (blob, language, base64prifix) {
     try {
       let showToast = devilentLIBS.showToast;
       showToast("transcribing by modal whipser");
@@ -614,10 +490,14 @@ const devilentLIBS = {
 
     button.addEventListener("pointerdown", function () {
       button.style.backgroundColor = "lightblue";
-        setTimeout(()=>{button.style.backgroundColor = originalColor;},1000)
+      // setTimeout(() => { button.style.backgroundColor = originalColor; }, 100000)
     });
-    document.body.addEventListener("pointerup", () => {
-      
+    button.addEventListener("pointerup", function () {
+      setTimeout(() => { button.style.backgroundColor = originalColor; }, 1000)
+    });
+    
+    button.addEventListener("pointercancel", function () {
+      setTimeout(() => { button.style.backgroundColor = originalColor; }, 1000)
     });
   },
   showToast: function showToast(
@@ -675,7 +555,7 @@ const devilentLIBS = {
     endfix = " "
   ) {
     console.log("writeText(): ", targetElement);
-      document.execCommand("insertText", false, `${prefix}${text}${endfix}`) || devilentLIBS.copyToClipboard(text);
+    document.execCommand("insertText", false, `${prefix}${text}${endfix}`) || devilentLIBS.copyToClipboard(text);
   },
   dragElement: function dragElement(
     elmnt,
@@ -854,19 +734,19 @@ const devilentLIBS = {
     copyButton.classList.add("copy-btn");
     insertButton.classList.add("insert-btn");
 
-    let editButton=document.createElement("button");
+    let editButton = document.createElement("button");
     editButton.innerText = "Edit";
     editButton.addEventListener("pointerdown", (e) => {
       e.preventDefault();
-      if(targetElement.isEditableElement){
+      if (targetElement.isEditableElement) {
         targetElement.setAttribute('contenteditable', 'false');
 
       }
-      else{
+      else {
         targetElement.setAttribute('contenteditable', 'true');
 
       }
-      
+
       // targetElement.isEditableElement=!targetElement.isEditableElement;
     });
     editButton.classList.add("copy-btn");
@@ -1033,12 +913,12 @@ const devilentLIBS = {
 
     devilentLIBS.renderMarkdown(mdString, container);
   },
-  moveElementNearMouse: (mElem, targetElement, alwayInWindow = true,event) => {
+  moveElementNearMouse: (mElem, targetElement, alwayInWindow = true, event) => {
     // const rect = targetElement.getBoundingClientRect();
     // The rect object contains the position information
-    let x = event.clientX+200 ; // X position relative to the window
-    let y = event.clientY-20;
-    console.log('moveElementNearMouse: ',x,y);
+    let x = event.clientX + 200; // X position relative to the window
+    let y = event.clientY - 20;
+    console.log('moveElementNearMouse: ', x, y);
     if (alwayInWindow) {
       x = Math.abs(x);
       y = Math.abs(y);
@@ -1139,7 +1019,7 @@ const devilentLIBS = {
     }
     let response = await fetch(
       devilentLIBS.config.corsproxy_url +
-      appModel.llm_model.url,
+      appModel.llm_model.url+`?reqtime=${Date.now()}`,
       {
         headers: {
           accept: "*/*",
@@ -1164,208 +1044,209 @@ const devilentLIBS = {
     document.body.appendChild(mdContainer);
     devilentLIBS.displayMarkdown(userText + "\n\n" + appModel.llm_model.name + '\n' + responseMessage);
     return response;
-  },
-};
 
-window.devilentLIBS = devilentLIBS;
+  }
+}
 
-let appModel = {
-  api_url: "",
-  api_key: "",
-  voice_button_id: "whisper_voice_button",
-  transcribeProvider: "lepton_whisper",
-  language: "",
-  supportedInputTypeList: ["text", "number", "tel", "search", "url", "email"],
-  buttonBackgroundColor: "lightblue",
-  minimalRecordTime: 2000,
-  keepButtonAliveInterval: 0,
-  isRecording: false,
-  llm_model: devilentLIBS.config.lepton_api.llm_models.wizardlm8x22b
-};
+  window.devilentLIBS = devilentLIBS;
 
-let view = {
-  elem: {
-    currentInputElem: null,
-    voiceButton: null,
-  },
-  async init() {
-    this.recorder = new devilentLIBS.Recorder();
-    this.createButton();
+  let appModel = {
+    api_url: "",
+    api_key: "",
+    voice_button_id: "whisper_voice_button",
+    transcribeProvider: "lepton_whisper",
+    language: "",
+    supportedInputTypeList: ["text", "number", "tel", "search", "url", "email"],
+    buttonBackgroundColor: "lightblue",
+    minimalRecordTime: 2000,
+    keepButtonAliveInterval: 0,
+    isRecording: false,
+    llm_model: devilentLIBS.config.lepton_api.llm_models.wizardlm8x22b
+  };
 
-    fetch('https://apikey.suisuy.eu.org/get?apikeyname=fgptkey')
-      .then(async res => {
-        console.log(devilentLIBS.config.apiKey.flowgpt = await res.text())
-      })
+  let view = {
+    elem: {
+      currentInputElem: null,
+      voiceButton: null,
+    },
+    async init() {
+      this.recorder = new devilentLIBS.Recorder();
+      this.createButton();
+
+      fetch('https://apikey.suisuy.eu.org/get?apikeyname=fgptkey')
+        .then(async res => {
+          console.log(devilentLIBS.config.apiKey.flowgpt = await res.text())
+        })
 
 
-    appModel.keepButtonAliveInterval = setInterval(() => {
+      appModel.keepButtonAliveInterval = setInterval(() => {
+        const whisperButton = document.getElementById("whisper_voice_button");
+
+        if (whisperButton) {
+          // Button exists, return now do nothing
+          return;
+        }
+        this.createButton();
+      }, 2000);
+      //this.monitorFocus();
+    },
+    createButton() {
+      // Check if the button element exists
       const whisperButton = document.getElementById("whisper_voice_button");
 
       if (whisperButton) {
         // Button exists, return now do nothing
         return;
       }
-      this.createButton();
-    }, 2000);
-    //this.monitorFocus();
-  },
-  createButton() {
-    // Check if the button element exists
-    const whisperButton = document.getElementById("whisper_voice_button");
 
-    if (whisperButton) {
-      // Button exists, return now do nothing
-      return;
-    }
+      console.log("create button");
 
-    console.log("create button");
+      let button = document.createElement("button");
+      this.elem.voiceButton = button;
 
-    let button = document.createElement("button");
-    this.elem.voiceButton = button;
+      button.id = appModel.voice_button_id;
+      button.innerText = "◯";
+      button.type = "button"; // Ensure the button does not submit forms
+      button.classList.add("speech-to-text-button");
+      button.style.top = window.innerHeight - 100 + "px";
+      button.style.left = "0";
+      button.style.width = "40px";
+      button.style.height = button.style.width;
+      button.style.fontSize = "30px";
+      button.style.padding = "0";
+      button.style.border = "0px";
+      button.style.color = "blue";
+      button.style.background = "transparent";
+      button.style.zIndex = 1000000;
+      button.style.position = "fixed";
+      button.style.borderRadius = "50%";
+      button.style.userSelect = "none";
+      button.style.touchAction = "none";
+      document.body.appendChild(button);
 
-    button.id = appModel.voice_button_id;
-    button.innerText = "◯";
-    button.type = "button"; // Ensure the button does not submit forms
-    button.classList.add("speech-to-text-button");
-    button.style.top = window.innerHeight - 100 + "px";
-    button.style.left = "0";
-    button.style.width = "40px";
-    button.style.height = button.style.width;
-    button.style.fontSize = "30px";
-    button.style.padding = "0";
-    button.style.border = "0px";
-    button.style.color = "blue";
-    button.style.background = "transparent";
-    button.style.zIndex = 1000000;
-    button.style.position = "fixed";
-    button.style.borderRadius = "50%";
-    button.style.userSelect = "none";
-    button.style.touchAction = "none";
-    document.body.appendChild(button);
+      devilentLIBS.dragElement(button, button);
+      button.addEventListener("click", () => {
+        // this.controller.handleRecording(targetElement);
+        console.log("createButton():clicked");
+      });
+      button.addEventListener("pointerdown", async (event) => {
+        event.preventDefault();
+        view.handler.startRecording(event);
+      });
+      // button.addEventListener('touchdown', async (event) => {
 
-    devilentLIBS.dragElement(button, button);
-    button.addEventListener("click", () => {
-      // this.controller.handleRecording(targetElement);
-      console.log("createButton():clicked");
-    });
-    button.addEventListener("pointerdown", async (event) => {
-      event.preventDefault();
-      view.handler.startRecording(event);
-    });
-    // button.addEventListener('touchdown', async (event) => {
+      // });
+      button.addEventListener("pointerup", () => {
+        console.log("createButton pointerup");
+        view.handler.stopRecording();
+      });
 
-    // });
-    button.addEventListener("pointerup", () => {
-      console.log("createButton pointerup");
-      view.handler.stopRecording();
-    });
+      devilentLIBS.addEventListenerForActualClick(button, (event) => {
+        let clientX = event?.clientX;
+        let clientY = event?.clientY;
+        view.createMenu(clientX + 50, clientY + 50);
+        //this.createMenuByGPT4(clientX+50,clientY+50);
+      });
 
-    devilentLIBS.addEventListenerForActualClick(button, (event) => {
-      let clientX = event?.clientX;
-      let clientY = event?.clientY;
-      view.createMenu(clientX + 50, clientY + 50);
-      //this.createMenuByGPT4(clientX+50,clientY+50);
-    });
+      devilentLIBS.addEventListenerForActualClick(document.body, (event) => {
+        if (view.recorder.isRecording) return;
 
-    devilentLIBS.addEventListenerForActualClick(document.body, (event) => {
-      if (view.recorder.isRecording) return;
-
-      if (event.target.tagName === "INPUT") {
-        if (appModel.supportedInputTypeList.includes(event.target.type)) {
-          devilentLIBS.moveElementNearMouse(button, event.target,true,event);
+        if (event.target.tagName === "INPUT") {
+          if (appModel.supportedInputTypeList.includes(event.target.type)) {
+            devilentLIBS.moveElementNearMouse(button, event.target, true, event);
+          }
+        } else if (
+          event.target.tagName === "TEXTAREA" ||
+          devilentLIBS.isEditableElement(event.target) === true
+        ) {
+          devilentLIBS.moveElementNearMouse(button, event.target, true, event);
         }
-      } else if (
-        event.target.tagName === "TEXTAREA" ||
-        devilentLIBS.isEditableElement(event.target) === true
-      ) {
-        devilentLIBS.moveElementNearMouse(button, event.target,true,event);
+        console.log(
+          event.target,
+          devilentLIBS.isEditableElement(event.target)
+            ? "editable"
+            : "noneditable"
+        );
+      });
+
+      window.addEventListener("resize", () => {
+        let buttonPos = button.getBoundingClientRect();
+        if (buttonPos.top > window.innerHeight - buttonPos.height) {
+          button.style.top = window.innerHeight - buttonPos.height + "px";
+        }
+        console.log("resize", buttonPos.top, window.innerHeight);
+      });
+
+      return button;
+    },
+
+
+    createMenu(x, y, id = "webai_input_menu") {
+      // Get window dimensions
+      const windowWidth = window.innerWidth;
+      const windowHeight = window.innerHeight;
+
+      // check if menu already exists
+      let menuContainer = document.getElementById(id);
+      if (menuContainer) {
+        // menu already exists, update its position
+        // Adjust position to keep the menu inside the window
+        menuContainer.style.left =
+          Math.min(x, windowWidth - menuContainer.offsetWidth * 0.5) + "px";
+        menuContainer.style.top =
+          Math.min(y, windowHeight - menuContainer.offsetHeight) - 100 + "px";
+        menuContainer.style.zIndex = "99999";
+
+        return;
       }
-      console.log(
-        event.target,
-        devilentLIBS.isEditableElement(event.target)
-          ? "editable"
-          : "noneditable"
-      );
-    });
 
-    window.addEventListener("resize", () => {
-      let buttonPos = button.getBoundingClientRect();
-      if (buttonPos.top > window.innerHeight - buttonPos.height) {
-        button.style.top = window.innerHeight - buttonPos.height + "px";
-      }
-      console.log("resize", buttonPos.top, window.innerHeight);
-    });
+      // create menu container
+      menuContainer = document.createElement("div");
+      // Append the menu to the body to calculate its dimensions
+      document.body.appendChild(menuContainer);
 
-    return button;
-  },
- 
-
-  createMenu(x, y, id = "webai_input_menu") {
-    // Get window dimensions
-    const windowWidth = window.innerWidth;
-    const windowHeight = window.innerHeight;
-
-    // check if menu already exists
-    let menuContainer = document.getElementById(id);
-    if (menuContainer) {
-      // menu already exists, update its position
-      // Adjust position to keep the menu inside the window
+      menuContainer.id = id; // add an id to the menu
+      menuContainer.style.zIndex = "99999";
+      menuContainer.style.position = "fixed";
+      menuContainer.style.backgroundColor = "white";
+      menuContainer.style.boxShadow = "0 2px 5px rgba(0, 0, 0, 0.1)";
+      menuContainer.style.borderRadius = "4px";
+      menuContainer.style.display = "flex";
+      menuContainer.style.flexDirection = "column";
+      menuContainer.style.alignItems = "flex-start";
+      menuContainer.style.padding = "10px";
+      // Now adjust position to keep the menu inside the window
       menuContainer.style.left =
-        Math.min(x, windowWidth - menuContainer.offsetWidth * 0.5) + "px";
+        Math.min(x, windowWidth - menuContainer.offsetWidth) + "px";
       menuContainer.style.top =
         Math.min(y, windowHeight - menuContainer.offsetHeight) - 100 + "px";
-      menuContainer.style.zIndex = "99999";
+      menuContainer.style.backgroundColor = "white";
+      menuContainer.style.boxShadow = "0 2px 5px rgba(0, 0, 0, 0.1)";
+      menuContainer.style.borderRadius = "4px";
+      menuContainer.style.display = "flex";
+      menuContainer.style.flexDirection = "column";
+      menuContainer.style.alignItems = "flex-start";
+      menuContainer.style.padding = "10px";
+      menuContainer.style.opacity = '0.7'
+      devilentLIBS.disableSelect(menuContainer);
 
-      return;
-    }
+      menuContainer.style.maxHeight = "60vh"; // Set max-height to 60vh
+      menuContainer.style.overflowY = "auto"; // Enable vertical scrollbar
 
-    // create menu container
-    menuContainer = document.createElement("div");
-    // Append the menu to the body to calculate its dimensions
-    document.body.appendChild(menuContainer);
-
-    menuContainer.id = id; // add an id to the menu
-    menuContainer.style.zIndex = "99999";
-    menuContainer.style.position = "fixed";
-    menuContainer.style.backgroundColor = "white";
-    menuContainer.style.boxShadow = "0 2px 5px rgba(0, 0, 0, 0.1)";
-    menuContainer.style.borderRadius = "4px";
-    menuContainer.style.display = "flex";
-    menuContainer.style.flexDirection = "column";
-    menuContainer.style.alignItems = "flex-start";
-    menuContainer.style.padding = "10px";
-    // Now adjust position to keep the menu inside the window
-    menuContainer.style.left =
-      Math.min(x, windowWidth - menuContainer.offsetWidth) + "px";
-    menuContainer.style.top =
-      Math.min(y, windowHeight - menuContainer.offsetHeight) - 100 + "px";
-    menuContainer.style.backgroundColor = "white";
-    menuContainer.style.boxShadow = "0 2px 5px rgba(0, 0, 0, 0.1)";
-    menuContainer.style.borderRadius = "4px";
-    menuContainer.style.display = "flex";
-    menuContainer.style.flexDirection = "column";
-    menuContainer.style.alignItems = "flex-start";
-    menuContainer.style.padding = "10px";
-    menuContainer.style.opacity = '0.7'
-    devilentLIBS.disableSelect(menuContainer);
-
-    menuContainer.style.maxHeight = "60vh"; // Set max-height to 60vh
-    menuContainer.style.overflowY = "auto"; // Enable vertical scrollbar
-
-    // Customize the scrollbar
-    menuContainer.style.cssText += `
+      // Customize the scrollbar
+      menuContainer.style.cssText += `
       scrollbar-width: thin; /* For Firefox */
       scrollbar-color: rgba(0, 0, 0, 0.3) transparent; /* For Chrome, Edge, and Safari */
     `;
-    menuContainer.style.msOverflowStyle = "none"; // Remove scrollbar for IE and Edge (if needed)
+      menuContainer.style.msOverflowStyle = "none"; // Remove scrollbar for IE and Edge (if needed)
 
-    // Function to create a menu item
-    function createMenuItem(textContent, handler) {
-      const menuItem = document.createElement("button");
-      devilentLIBS.makeButtonFeedback(menuItem);
-      menuContainer.appendChild(menuItem);
-      // Set inline styles
-      menuItem.style.cssText = `
+      // Function to create a menu item
+      function createMenuItem(textContent, handler) {
+        const menuItem = document.createElement("button");
+        devilentLIBS.makeButtonFeedback(menuItem);
+        menuContainer.appendChild(menuItem);
+        // Set inline styles
+        menuItem.style.cssText = `
         background-color: white;
         border: none;
         font-size: 14px;
@@ -1383,332 +1264,332 @@ let view = {
         border-radius: 4px;
       `;
 
-      menuItem.textContent = textContent;
-      menuItem.addEventListener("pointerdown", (event) => {
-        event.preventDefault();
-        if (handler) {
-          handler();
+        menuItem.textContent = textContent;
+        menuItem.addEventListener("pointerdown", (event) => {
+          event.preventDefault();
+          if (handler) {
+            handler();
+          }
+        });
+
+        return menuItem;
+      }
+
+      // create remove menu item
+      const removeMenuItem = createMenuItem("Remove Menu");
+      removeMenuItem.addEventListener("pointerdown", () =>
+        menuContainer.remove()
+      );
+      menuContainer.appendChild(removeMenuItem);
+
+      const closeButton = createMenuItem("Close");
+      closeButton.addEventListener("pointerdown", () => {
+        if (confirm("remove the AI tool now?")) {
+          clearInterval(appModel.keepButtonAliveInterval);
+          view.elem.voiceButton.remove();
+          menuContainer.remove();
+        }
+      });
+      menuContainer.appendChild(closeButton);
+
+      createMenuItem("TTS", () => {
+        devilentLIBS.tts(
+          devilentLIBS.getSelectionText(),
+          "de-DE-SeraphinaMultilingualNeural"
+        );
+      });
+      // create start menu item
+      const startMenuItem = createMenuItem("Start");
+      menuContainer.appendChild(startMenuItem);
+      startMenuItem.addEventListener("pointerdown", () => {
+        view.elem.voiceButton.style.top = '0px';
+        view.elem.voiceButton.style.left = window.innerWidth * 0.8 + 'px';
+        appModel.isRecording = true;
+        view.handler.startRecordingWithSilenceDetection();
+      });
+
+      let copyButton = createMenuItem("Copy");
+      menuContainer.appendChild(copyButton);
+      copyButton.addEventListener("pointerdown", (e) => {
+        e.preventDefault();
+        document.execCommand("copy");
+        devilentLIBS.showToast("Copied to clipboard");
+      });
+
+      createMenuItem("Cut", () => {
+        document.execCommand("copy");
+        document.execCommand("delete");
+        devilentLIBS.showToast("Cut to clipboard");
+      });
+
+      let pasteButton = createMenuItem("Paste");
+      menuContainer.appendChild(pasteButton);
+      pasteButton.addEventListener("pointerdown", async (e) => {
+        e.preventDefault();
+        try {
+          const text = await navigator.clipboard.readText();
+          devilentLIBS.writeText(document.activeElement, text);
+          console.log("Clipboard text:", text);
+          // Your logic to process the clipboard text
+        } catch (err) {
+          console.error("Clipboard access denied:", err);
         }
       });
 
-      return menuItem;
-    }
+      let enterButton = createMenuItem("Enter");
+      menuContainer.appendChild(enterButton);
+      enterButton.addEventListener("pointerdown", (e) => {
+        e.preventDefault();
+        document.execCommand("insertText", false, "\n");
+      });
 
-    // create remove menu item
-    const removeMenuItem = createMenuItem("Remove Menu");
-    removeMenuItem.addEventListener("pointerdown", () =>
-      menuContainer.remove()
-    );
-    menuContainer.appendChild(removeMenuItem);
+      createMenuItem("Correct", () => {
+        let correctPrompt =
+          'fix mistakes of the text, make it better,put anwser in codeblock:\n ';
+        view.handler.chat(correctPrompt);
+      });
 
-    const closeButton = createMenuItem("Close");
-    closeButton.addEventListener("pointerdown", () => {
-      if (confirm("remove the AI tool now?")) {
-        clearInterval(appModel.keepButtonAliveInterval);
-        view.elem.voiceButton.remove();
-        menuContainer.remove();
-      }
-    });
-    menuContainer.appendChild(closeButton);
+      let askButton = createMenuItem("Ask");
+      menuContainer.appendChild(askButton);
+      askButton.addEventListener("pointerdown", (e) => {
+        e.preventDefault();
+        document.body.addEventListener("pointerup", () => {
+          if (appModel.isRecording) return;
+          view.handler.stopRecording();
+        }, { once: true });
 
-    createMenuItem("TTS", () => {
-      devilentLIBS.fgpt_tts(
-        devilentLIBS.getSelectionText(),
-        "de-DE-SeraphinaMultilingualNeural"
-      );
-    });
-    // create start menu item
-    const startMenuItem = createMenuItem("Start");
-    menuContainer.appendChild(startMenuItem);
-    startMenuItem.addEventListener("pointerdown", () => {
-      view.elem.voiceButton.style.top = '0px';
-      view.elem.voiceButton.style.left = window.innerWidth * 0.8 + 'px';
-      appModel.isRecording = true;
-      view.handler.startRecordingWithSilenceDetection();
-    });
-
-    let copyButton = createMenuItem("Copy");
-    menuContainer.appendChild(copyButton);
-    copyButton.addEventListener("pointerdown", (e) => {
-      e.preventDefault();
-      document.execCommand("copy");
-      devilentLIBS.showToast("Copied to clipboard");
-    });
-
-    createMenuItem("Cut", () => {
-      document.execCommand("copy");
-      document.execCommand("delete");
-      devilentLIBS.showToast("Cut to clipboard");
-    });
-
-    let pasteButton = createMenuItem("Paste");
-    menuContainer.appendChild(pasteButton);
-    pasteButton.addEventListener("pointerdown", async (e) => {
-      e.preventDefault();
-      try {
-        const text = await navigator.clipboard.readText();
-        devilentLIBS.writeText(document.activeElement, text);
-        console.log("Clipboard text:", text);
-        // Your logic to process the clipboard text
-      } catch (err) {
-        console.error("Clipboard access denied:", err);
-      }
-    });
-
-    let enterButton = createMenuItem("Enter");
-    menuContainer.appendChild(enterButton);
-    enterButton.addEventListener("pointerdown", (e) => {
-      e.preventDefault();
-      document.execCommand("insertText", false, "\n");
-    });
-
-    createMenuItem("Correct", () => {
-      let correctPrompt =
-        'fix mistakes of the text, make it better:\n ';
-      view.handler.chat(correctPrompt);
-    });
-
-    let askButton = createMenuItem("Ask");
-    menuContainer.appendChild(askButton);
-    askButton.addEventListener("pointerdown", (e) => {
-      e.preventDefault();
-      document.body.addEventListener("pointerup", () => {
-        if (appModel.isRecording) return;
-        view.handler.stopRecording();
-      }, { once: true });
-
-      view.handler.ask();
+        view.handler.ask();
 
 
-    });
+      });
 
 
-    // add menu to the body
+      // add menu to the body
 
-    menuContainer.style.left =
-      Math.min(x, windowWidth - menuContainer.offsetWidth * 0.5) + "px";
-    menuContainer.style.top =
-      Math.min(y, windowHeight - menuContainer.offsetHeight) - 100 + "px";
-    document.body.appendChild(menuContainer);
-  },
-
-  createMenuByGPT4(x, y) {
-    // Check if the menu already exists
-    let existingMenu = document.getElementById("customMenu");
-
-    if (existingMenu) {
-      // Move the existing menu to the new position
-      existingMenu.style.left = x + "px";
-      existingMenu.style.top = y + "px";
-      return; // Exit the function since the menu already exists
-    }
-
-    // Create the menu container
-    let menu = document.createElement("div");
-    menu.id = "customMenu";
-    menu.style.position = "fixed";
-    menu.style.left = x + "px";
-    menu.style.top = y + "px";
-    menu.style.backgroundColor = "#f0f0f0";
-    menu.style.border = "1px solid #ddd";
-    menu.style.padding = "10px";
-    menu.style.borderRadius = "5px";
-    menu.style.boxShadow = "0 2px 6px rgba(0,0,0,0.2)";
-    menu.style.zIndex = "1000";
-
-    // Add menu items
-    let itemList = ["Remove", "Start", "Stop"];
-
-    itemList.forEach(function (item) {
-      let button = document.createElement("button");
-      button.textContent = item;
-      button.style.marginRight = "5px";
-      button.style.padding = "5px 10px";
-      button.style.border = "none";
-      button.style.borderRadius = "3px";
-      button.style.cursor = "pointer";
-
-      // Align Start and Stop buttons to the left
-      if (item === "Start" || item === "Stop") {
-        button.style.float = "left";
-      }
-
-      // Add click event for Remove
-      if (item === "Remove") {
-        button.onclick = function () {
-          menu.parentNode.removeChild(menu);
-        };
-      }
-
-      // Add click event for Start (functionality not defined)
-      if (item === "Start") {
-        button.onclick = function () {
-          console.log("Start clicked");
-          // Define what should happen when the Start button is clicked
-        };
-      }
-
-      // Add click event for Stop (functionality not defined)
-      if (item === "Stop") {
-        button.onclick = function () {
-          console.log("Stop clicked");
-          // Define what should happen when the Stop button is clicked
-        };
-      }
-
-      menu.appendChild(button);
-    });
-
-    // Append the menu to the body
-    document.body.appendChild(menu);
-  },
-
-  handler: {
-    async chat(message) {
-      let selectionString = devilentLIBS.getSelectionText();
-      let userText = message + selectionString;
-
-      if (devilentLIBS.checkValidString(userText) === false) {
-        console.log("chat(): invalid userText:", userText);
-        return;
-      }
-
-      devilentLIBS.displayMarkdown(userText + " please wait");
-      devilentLIBS.leptonSimpleComplete(userText);
-    },
-    async ask() {
-      if (appModel.isRecording) {
-        devilentLIBS.leptonSimpleComplete(devilentLIBS.getSelectionText());
-        return;
-      }
-
-      let startTime = Date.now();
-      let audioblob = await view.recorder.startRecording(view.elem.voiceButton);
-      //console.log(await blobToBase64(audioblob))
-
-      if (Date.now() - startTime < appModel.minimalRecordTime) {
-        devilentLIBS.showToast("time too short, this will not transcribe");
-        console.log("ask():", devilentLIBS.getSelectionText());
-        devilentLIBS.leptonSimpleComplete(devilentLIBS.getSelectionText());
-        return;
-      }
-
-      let transcribe = await devilentLIBS.stt(audioblob);
-      if (!transcribe) {
-        console.log("transcribe failed, try alternative way");
-        transcribe = await whisperjaxws(audioblob);
-      }
-      let selectionString = window.getSelection().toString();
-      let userText = devilentLIBS.checkValidString(selectionString)
-        ? `"${selectionString}" ${transcribe.text}`
-        : transcribe.text;
-      if (devilentLIBS.checkValidString(userText) === false) {
-        console.log("ask(): invalid userText:", userText);
-        return;
-      }
-      userText = userText;
-      devilentLIBS.displayMarkdown(userText + " please wait");
-      devilentLIBS.leptonSimpleComplete(userText);
-    },
-    async startRecording(event) {
-      let startTime = Date.now();
-      let audioblob = await view.recorder.startRecording(view.elem.voiceButton);
-      //console.log(await blobToBase64(audioblob))
-
-      if (Date.now() - startTime < appModel.minimalRecordTime) {
-        devilentLIBS.showToast("time too short, this will not transcribe");
-        return;
-      }
-
-      let transcribe = await devilentLIBS.stt(audioblob);
-      if (!transcribe.text) {
-        console.log("transcribe failed, try alternative way");
-        transcribe = await whisperjaxws(audioblob);
-      }
-      devilentLIBS.writeText(document.activeElement, transcribe.text);
-    },
-    async startRecordingWithSilenceDetection(event) {
-      //todo
-      let startTime = Date.now();
-      let finalAudioblob = await view.recorder.startRecordingWithSilenceDetection(view.elem.voiceButton,
-        (audoBlob => {
-          devilentLIBS.stt(audoBlob).then(transcribe => {
-            if (transcribe === false) {
-              console.log("transcribe failed, try alternative way");
-              whisperjaxws(audoBlob).then(transcribe => {
-                devilentLIBS.writeText(document.activeElement, transcribe);
-              });
-
-            }
-            else {
-              devilentLIBS.writeText(document.activeElement, transcribe.text);
-
-            }
-          });
-
-
-        }));
-      //console.log(await blobToBase64(audioblob))
-
-      if (Date.now() - startTime < appModel.minimalRecordTime) {
-        devilentLIBS.showToast("time too short, this will not transcribe");
-        return;
-      }
-
-      let transcribe = await sendAudioToLeptonWhisperApi(finalAudioblob);
-      if (!transcribe ) {
-        console.log("transcribe failed, try alternative way");
-        transcribe = await whisperjaxws(finalAudioblob);
-      }
-      devilentLIBS.writeText(document.activeElement, transcribe.text);
+      menuContainer.style.left =
+        Math.min(x, windowWidth - menuContainer.offsetWidth * 0.5) + "px";
+      menuContainer.style.top =
+        Math.min(y, windowHeight - menuContainer.offsetHeight) - 100 + "px";
+      document.body.appendChild(menuContainer);
     },
 
-    stopRecording(safeStop = true) {
-      appModel.isRecording = false;
-      if (safeStop) {
-        setTimeout(() => {
-          console.log("safeStop");
-          view.recorder.stopRecording();
-        }, 500);
-      } else {
-        view.recorder.stopRecording();
+    createMenuByGPT4(x, y) {
+      // Check if the menu already exists
+      let existingMenu = document.getElementById("customMenu");
+
+      if (existingMenu) {
+        // Move the existing menu to the new position
+        existingMenu.style.left = x + "px";
+        existingMenu.style.top = y + "px";
+        return; // Exit the function since the menu already exists
       }
+
+      // Create the menu container
+      let menu = document.createElement("div");
+      menu.id = "customMenu";
+      menu.style.position = "fixed";
+      menu.style.left = x + "px";
+      menu.style.top = y + "px";
+      menu.style.backgroundColor = "#f0f0f0";
+      menu.style.border = "1px solid #ddd";
+      menu.style.padding = "10px";
+      menu.style.borderRadius = "5px";
+      menu.style.boxShadow = "0 2px 6px rgba(0,0,0,0.2)";
+      menu.style.zIndex = "1000";
+
+      // Add menu items
+      let itemList = ["Remove", "Start", "Stop"];
+
+      itemList.forEach(function (item) {
+        let button = document.createElement("button");
+        button.textContent = item;
+        button.style.marginRight = "5px";
+        button.style.padding = "5px 10px";
+        button.style.border = "none";
+        button.style.borderRadius = "3px";
+        button.style.cursor = "pointer";
+
+        // Align Start and Stop buttons to the left
+        if (item === "Start" || item === "Stop") {
+          button.style.float = "left";
+        }
+
+        // Add click event for Remove
+        if (item === "Remove") {
+          button.onclick = function () {
+            menu.parentNode.removeChild(menu);
+          };
+        }
+
+        // Add click event for Start (functionality not defined)
+        if (item === "Start") {
+          button.onclick = function () {
+            console.log("Start clicked");
+            // Define what should happen when the Start button is clicked
+          };
+        }
+
+        // Add click event for Stop (functionality not defined)
+        if (item === "Stop") {
+          button.onclick = function () {
+            console.log("Stop clicked");
+            // Define what should happen when the Stop button is clicked
+          };
+        }
+
+        menu.appendChild(button);
+      });
+
+      // Append the menu to the body
+      document.body.appendChild(menu);
     },
-  },
-};
 
-view.init();
+    handler: {
+      async chat(message) {
+        let selectionString = devilentLIBS.getSelectionText();
+        let userText = message + selectionString;
 
-async function sendAudioToApi(blob, targetElement) {
-  try {
-    const formData = new FormData();
-    formData.append("file", blob);
-    formData.append("model", "whisper-1");
+        if (devilentLIBS.checkValidString(userText) === false) {
+          console.log("chat(): invalid userText:", userText);
+          return;
+        }
 
-    // You need to replace the URL and headers with the ones provided by your online API
-    const response = await fetch(`${API_URL}/v1/audio/transcriptions`, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${this.apiKey}`,
-        // Add other headers required by the API
+        devilentLIBS.displayMarkdown(userText + " \n please wait");
+        devilentLIBS.leptonSimpleComplete(userText);
       },
-      body: formData,
-    });
+      async ask() {
+        if (appModel.isRecording) {
+          devilentLIBS.leptonSimpleComplete(devilentLIBS.getSelectionText());
+          return;
+        }
 
-    if (!response.ok) {
-      throw new Error(`Error from API: ${response.statusText}`);
-    }
+        let startTime = Date.now();
+        let audioblob = await view.recorder.startRecording(view.elem.voiceButton);
+        //console.log(await blobToBase64(audioblob))
 
-    const data = await response.json();
-    // You'll need to access the correct property from the response JSON based on the API's response format
-    //targetElement.value = data.results.channels[0].alternatives[0].transcript;
-    targetElement.value += " " + data.text;
-    targetElement.focus();
-    // Use document.execCommand to insert text
-    document.execCommand("insertText", false, "\n");
+        if (Date.now() - startTime < appModel.minimalRecordTime) {
+          devilentLIBS.showToast("time too short, this will not transcribe");
+          console.log("ask():", devilentLIBS.getSelectionText());
+          devilentLIBS.leptonSimpleComplete(devilentLIBS.getSelectionText());
+          return;
+        }
+
+        let transcribe = await devilentLIBS.stt(audioblob);
+        if (!transcribe) {
+          console.log("transcribe failed, try alternative way");
+          transcribe = await whisperjaxws(audioblob);
+        }
+        let selectionString = window.getSelection().toString();
+        let userText = devilentLIBS.checkValidString(selectionString)
+          ? `"${selectionString}" ${transcribe.text}`
+          : transcribe.text;
+        if (devilentLIBS.checkValidString(userText) === false) {
+          console.log("ask(): invalid userText:", userText);
+          return;
+        }
+        userText = userText;
+        devilentLIBS.displayMarkdown(userText + " please wait");
+        devilentLIBS.leptonSimpleComplete(userText);
+      },
+      async startRecording(event) {
+        let startTime = Date.now();
+        let audioblob = await view.recorder.startRecording(view.elem.voiceButton);
+        //console.log(await blobToBase64(audioblob))
+
+        if (Date.now() - startTime < appModel.minimalRecordTime) {
+          devilentLIBS.showToast("time too short, this will not transcribe");
+          return;
+        }
+
+        let transcribe = await devilentLIBS.stt(audioblob);
+        if (!transcribe.text) {
+          console.log("transcribe failed, try alternative way");
+          transcribe = await whisperjaxws(audioblob);
+        }
+        devilentLIBS.writeText(document.activeElement, transcribe.text);
+      },
+      async startRecordingWithSilenceDetection(event) {
+        //todo
+        let startTime = Date.now();
+        let finalAudioblob = await view.recorder.startRecordingWithSilenceDetection(view.elem.voiceButton,
+          (audoBlob => {
+            devilentLIBS.stt(audoBlob).then(transcribe => {
+              if (transcribe === false) {
+                console.log("transcribe failed, try alternative way");
+                whisperjaxws(audoBlob).then(transcribe => {
+                  devilentLIBS.writeText(document.activeElement, transcribe);
+                });
+
+              }
+              else {
+                devilentLIBS.writeText(document.activeElement, transcribe.text);
+
+              }
+            });
+
+
+          }));
+        //console.log(await blobToBase64(audioblob))
+
+        if (Date.now() - startTime < appModel.minimalRecordTime) {
+          devilentLIBS.showToast("time too short, this will not transcribe");
+          return;
+        }
+
+        let transcribe = await sendAudioToLeptonWhisperApi(finalAudioblob);
+        if (!transcribe) {
+          console.log("transcribe failed, try alternative way");
+          transcribe = await whisperjaxws(finalAudioblob);
+        }
+        devilentLIBS.writeText(document.activeElement, transcribe.text);
+      },
+
+      stopRecording(safeStop = true) {
+        appModel.isRecording = false;
+        if (safeStop) {
+          setTimeout(() => {
+            console.log("safeStop");
+            view.recorder.stopRecording();
+          }, 500);
+        } else {
+          view.recorder.stopRecording();
+        }
+      },
+    },
+  };
+
+  view.init();
+
+  async function sendAudioToApi(blob, targetElement) {
+    try {
+      const formData = new FormData();
+formData.append("file", blob);
+formData.append("model", "whisper-1");
+
+// You need to replace the URL and headers with the ones provided by your online API
+const response = await fetch(`${API_URL}/v1/audio/transcriptions`, {
+  method: "POST",
+  headers: {
+    Authorization: `Bearer ${this.apiKey}`,
+    // Add other headers required by the API
+  },
+  body: formData,
+});
+
+if (!response.ok) {
+  throw new Error(`Error from API: ${response.statusText}`);
+}
+
+const data = await response.json();
+// You'll need to access the correct property from the response JSON based on the API's response format
+//targetElement.value = data.results.channels[0].alternatives[0].transcript;
+targetElement.value += " " + data.text;
+targetElement.focus();
+// Use document.execCommand to insert text
+document.execCommand("insertText", false, "\n");
   } catch (error) {
-    console.error("Error sending audio to the API:", error);
-  }
+  console.error("Error sending audio to the API:", error);
+}
 }
 
 
@@ -1783,7 +1664,7 @@ async function whisperjaxws(blob) {
       } else if (data.msg === "process_completed") {
         let result = data.output.data[0];
         console.log(result);
-        resolve({text: result});
+        resolve({ text: result });
       }
       // Add additional handling for other message types as needed
       console.log(data);
