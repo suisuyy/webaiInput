@@ -1,3 +1,8 @@
+let textarea_1=document.getElementById('textarea_1');
+textarea_1.value='\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n'
+
+
+
 // Create toolbar element
 const toolbar = document.createElement("div");
 toolbar.id = "esl-toolbar";
