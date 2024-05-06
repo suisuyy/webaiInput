@@ -299,7 +299,6 @@ const devilentLIBS = {
     }
   },
   tts: function synthesizeSpeech(text = 'test text', voice = 'alloy') {
-    if (text && voice) {
 
       let url = `https://tts.grapee.ddnsfree.com/tts/${encodeURIComponent(text)}`;
 
@@ -322,23 +321,32 @@ const devilentLIBS = {
 
         // Create a button to hide the audio
         let button = document.createElement("button");
-        button.innerHTML = "Hide Audio";
-        button.onclick = function () {
-          container.style.display = "none";
-        };
-        container.appendChild(button);
+        button.innerHTML = "x";
+        button.style.backgroundColor='transparent';
+        button.style.marginLeft='10px';
+          
+          button.addEventListener('pointerdown', ()=>container.style.display = "none")
+        let br=document.createElement('br');
+
+
+        container.prepend(br);
+        container.prepend(button);
+
       }
       container.style.display = "block";
       container.style.position = "fixed";
-      container.style.top = "0";
+      container.style.bottom = "0";
       container.style.right = "0";
+      container.style.height='fit-content'
 
-      // Update the source of the audio element
+      // Update the source of the audio element if text is valid string
+      if(!text) return;
       audio.src = url;
       audio.controls = true;
       audio.autoplay = true;
 
-    }
+      devilentLIBS.dragElement(container,container)
+    
   },
 
  
