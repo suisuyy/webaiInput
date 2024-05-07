@@ -1,3 +1,8 @@
+let config={
+    first_language: '',
+    second_language: 'English'
+}
+
 let textarea_1=document.getElementById('textarea_1');
 textarea_1.value='\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n'
 
@@ -37,12 +42,18 @@ const defineBtn = document.createElement("button");
 defineBtn.id = "define-btn";
 defineBtn.textContent = "Define";
 
+
+const removeButton = document.createElement("button");
+removeButton.id = "remove-btn";
+removeButton.textContent = "Hide";
+
 // Append buttons to toolbar
 toolbar.appendChild(askButton);
 toolbar.appendChild(correctBtn);
 toolbar.appendChild(translateBtn);
 toolbar.appendChild(explainBtn);
 toolbar.appendChild(defineBtn);
+toolbar.appendChild(removeButton);
 
 
 // Create content area
@@ -75,7 +86,7 @@ correctBtn.addEventListener("click", () => {
     const selectedText = getSelectedText();
     // ... (Use grammar correction library/API)
     let correctPrompt =
-    'fix mistakes of the text, make it better,put anwser in codeblock:\n ';
+    'fix mistakes of the text,put anwser in codeblock:\n ';
     devilentLIBS.leptonSimpleComplete(correctPrompt+window.getSelection().toString());
 });
 
@@ -92,7 +103,7 @@ translateBtn.addEventListener("click", () => {
 explainBtn.addEventListener("click", () => {
     const selectedText = getSelectedText();
     let correctPrompt =
-    'explain this for seconds language learner in simple english and japanese:\n ';
+    'explain this for english seconds language learner in simple english:\n ';
     devilentLIBS.leptonSimpleComplete(correctPrompt+window.getSelection().toString());
     // ... (Use simplification API/NLP techniques)
 });
@@ -106,31 +117,33 @@ defineBtn.addEventListener("click", () => {
     // ... (Use dictionary API)
 });
 
+removeButton.addEventListener('click',()=>toolbar.style.display='none')
+
 // Style the toolbar
 toolbar.style.position = "fixed";
 toolbar.style.top = "0%";
 toolbar.style.left = "0";
-toolbar.style.width = "100%";
-toolbar.style.backgroundColor = "#f0f0f0"; // Light gray background
-toolbar.style.padding = "10px";
+toolbar.style.width = "wrap-content";
+toolbar.style.backgroundColor = "black"; // Light gray background
+toolbar.style.padding = "5px";
 toolbar.style.boxShadow = "0 2px 4px rgba(0, 0, 0, 0.1)"; // Add a subtle shadow
 
 // Style the buttons
 const buttonStyles = {
-    backgroundColor: "#4CAF50", // Green background
+    backgroundColor: "black", // Green background
     border: "none",
     color: "white",
-    padding: "10px 20px",
+    padding: "2px",
     textAlign: "center",
     textDecoration: "none",
     display: "inline-block",
-    fontSize: "16px",
-    margin: "4px 2px",
+    fontSize: "small",
+    margin: "2px",
     cursor: "pointer",
     borderRadius: "5px", // Rounded corners
 };
 
 // Apply styles to each button
-for (const button of [askButton,correctBtn, translateBtn, explainBtn, defineBtn]) {
+for (const button of [askButton,correctBtn, translateBtn, explainBtn, defineBtn,removeButton]) {
     Object.assign(button.style, buttonStyles);
 }
