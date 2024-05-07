@@ -8,6 +8,10 @@ const devilentLIBS = {
           url: 'https://wizardlm-2-8x22b.lepton.run/api/v1/chat/completions',
           name: 'wizardlm-2-8x22b'
         },
+        mixtral8x22b: {
+          url: 'https://mixtral-8x22b.lepton.run/api/v1/chat/completions',
+          name: 'mixtral-8x22b'
+        },
         llama3_70b: {
           url: 'https://llama3-70b.lepton.run/api/v1/chat/completions',
           name: 'llama3-70b'
@@ -1074,7 +1078,7 @@ const devilentLIBS = {
     minimalRecordTime: 2000,
     keepButtonAliveInterval: 0,
     isRecording: false,
-    llm_model: devilentLIBS.config.lepton_api.llm_models.llama3_70b
+    llm_model: devilentLIBS.config.lepton_api.llm_models.mixtral8x22b
   };
 
   let view = {
