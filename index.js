@@ -699,9 +699,7 @@ const devilentLIBS = {
           <div class="code-block">
               <button class="copy-code-btn">Copy</button>
               <button class="insert-code-btn">Insert</button>
-              <pre id='devilentCodePre'>
-              <xmp>${code}</xmp>
-              </pre>
+              <pre id='devilentCodePre'><xmp>${code}</xmp></pre>
           </div>
       `;
     });
@@ -1575,6 +1573,8 @@ const devilentLIBS = {
   };
 
   view.init();
+
+  window.webaiinputview=view;
 
   async function sendAudioToApi(blob, targetElement) {
     try {

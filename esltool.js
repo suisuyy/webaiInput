@@ -77,7 +77,8 @@ askButton.addEventListener("click", () => {
     // ... (Use grammar correction library/API)
     let correctPrompt =
     ' ';
-    devilentLIBS.leptonSimpleComplete(correctPrompt+window.getSelection().toString());
+    devilentLIBS.displayMarkdown(`${correctPrompt} **${window.getSelection().toString()}** ..`);
+    devilentLIBS.leptonSimpleComplete(`${correctPrompt} **${window.getSelection().toString()}**`);
 });
 
 
@@ -86,8 +87,9 @@ correctBtn.addEventListener("click", () => {
     const selectedText = getSelectedText();
     // ... (Use grammar correction library/API)
     let correctPrompt =
-    'fix mistakes of the text,put anwser in codeblock:\n ';
-    devilentLIBS.leptonSimpleComplete(correctPrompt+window.getSelection().toString());
+    'correct mistakes of the text,put anwser in codeblock:\n ';
+    devilentLIBS.displayMarkdown(`${correctPrompt} **${window.getSelection().toString()}** ..`);
+    devilentLIBS.leptonSimpleComplete(`${correctPrompt} **${window.getSelection().toString()}**`);
 });
 
 // Translate Button:
@@ -96,7 +98,8 @@ translateBtn.addEventListener("click", () => {
     // ... (Use translation API)
     let correctPrompt =
     'translate to english,japanese,chinese:\n ';
-    devilentLIBS.leptonSimpleComplete(correctPrompt+window.getSelection().toString());
+    devilentLIBS.displayMarkdown(`${correctPrompt} **${window.getSelection().toString()}** ..`);
+    devilentLIBS.leptonSimpleComplete(`${correctPrompt} **${window.getSelection().toString()}**`);
 });
 
 // Explain Button:
@@ -104,7 +107,8 @@ explainBtn.addEventListener("click", () => {
     const selectedText = getSelectedText();
     let correctPrompt =
     'explain this for english seconds language learner in simple english:\n ';
-    devilentLIBS.leptonSimpleComplete(correctPrompt+window.getSelection().toString());
+    devilentLIBS.displayMarkdown(`${correctPrompt} **${window.getSelection().toString()}** ..`);
+    devilentLIBS.leptonSimpleComplete(`${correctPrompt} **${window.getSelection().toString()}**`);
     // ... (Use simplification API/NLP techniques)
 });
 
@@ -113,7 +117,8 @@ defineBtn.addEventListener("click", () => {
     const selectedText = getSelectedText();
     let correctPrompt =
     'define the word , first in simple english , and give some usage example:\n ';
-    devilentLIBS.leptonSimpleComplete(correctPrompt+window.getSelection().toString());
+    devilentLIBS.displayMarkdown(`${correctPrompt} **${window.getSelection().toString()}** ..`);
+    devilentLIBS.leptonSimpleComplete(`${correctPrompt} **${window.getSelection().toString()}**`);
     // ... (Use dictionary API)
 });
 
@@ -146,4 +151,17 @@ const buttonStyles = {
 // Apply styles to each button
 for (const button of [askButton,correctBtn, translateBtn, explainBtn, defineBtn,removeButton]) {
     Object.assign(button.style, buttonStyles);
+    devilentLIBS.makeButtonFeedback(button);
 }
+
+setTimeout(() => {
+    devilentLIBS.displayMarkdown(`
+hello, this is note for language learner
+code will display like this:
+\`\`\`
+this code
+\`\`\`
+    `)
+    window.webaiinputview.createMenu( 10000, 300);
+
+}, 1000);
