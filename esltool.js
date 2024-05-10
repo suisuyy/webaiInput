@@ -1,10 +1,10 @@
-let config={
+let config = {
     first_language: '',
     second_language: 'English'
 }
 
-let textarea_1=document.getElementById('textarea_1');
-textarea_1.value='\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n'
+let textarea_1 = document.getElementById('textarea_1');
+textarea_1.value = '\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n';
 
 
 
@@ -72,57 +72,44 @@ function getSelectedText() {
 
 // Implement functionalities for each button (same as before)
 
+function ask(question) {
+
+    let prompt = question;
+    let currentLineString = devilentLIBS.getCurrentLineString(document.activeElement);
+    let selectText = window.getSelection().toString();
+    prompt=`${prompt} **${selectText.length >= 1 ? selectText : currentLineString}** `
+    devilentLIBS.displayMarkdown(prompt+'...');
+    devilentLIBS.leptonSimpleComplete(prompt);
+}
+
 askButton.addEventListener("click", () => {
-    const selectedText = getSelectedText();
-    // ... (Use grammar correction library/API)
-    let correctPrompt =
-    ' ';
-    devilentLIBS.displayMarkdown(`${correctPrompt} **${window.getSelection().toString()}** ..`);
-    devilentLIBS.leptonSimpleComplete(`${correctPrompt} **${window.getSelection().toString()}**`);
+    ask(' ');    
+
 });
 
 
 // Correct Button:
 correctBtn.addEventListener("click", () => {
-    const selectedText = getSelectedText();
-    // ... (Use grammar correction library/API)
-    let correctPrompt =
-    'correct mistakes of the text,put anwser in codeblock:\n ';
-    devilentLIBS.displayMarkdown(`${correctPrompt} **${window.getSelection().toString()}** ..`);
-    devilentLIBS.leptonSimpleComplete(`${correctPrompt} **${window.getSelection().toString()}**`);
+    ask('correct mistakes of the text: \n');
 });
 
 // Translate Button:
 translateBtn.addEventListener("click", () => {
-    const selectedText = getSelectedText();
-    // ... (Use translation API)
-    let correctPrompt =
-    'translate to english,japanese,chinese:\n ';
-    devilentLIBS.displayMarkdown(`${correctPrompt} **${window.getSelection().toString()}** ..`);
-    devilentLIBS.leptonSimpleComplete(`${correctPrompt} **${window.getSelection().toString()}**`);
+    ask(' translate to english,japanese,chinese:\n ');
 });
 
 // Explain Button:
 explainBtn.addEventListener("click", () => {
-    const selectedText = getSelectedText();
-    let correctPrompt =
-    'explain this for english seconds language learner in simple english:\n ';
-    devilentLIBS.displayMarkdown(`${correctPrompt} **${window.getSelection().toString()}** ..`);
-    devilentLIBS.leptonSimpleComplete(`${correctPrompt} **${window.getSelection().toString()}**`);
-    // ... (Use simplification API/NLP techniques)
+    ask('explain this for english seconds language learner in simple english:\n ');
+
 });
 
 // Define Button:
 defineBtn.addEventListener("click", () => {
-    const selectedText = getSelectedText();
-    let correctPrompt =
-    'define the word , first in simple english , and give some usage example:\n ';
-    devilentLIBS.displayMarkdown(`${correctPrompt} **${window.getSelection().toString()}** ..`);
-    devilentLIBS.leptonSimpleComplete(`${correctPrompt} **${window.getSelection().toString()}**`);
-    // ... (Use dictionary API)
-});
+    ask('define the word , first in simple english , and give some usage example:\n '  )
+    });
 
-removeButton.addEventListener('click',()=>toolbar.style.display='none')
+removeButton.addEventListener('click', () => toolbar.style.display = 'none')
 
 // Style the toolbar
 toolbar.style.position = "fixed";
@@ -149,7 +136,7 @@ const buttonStyles = {
 };
 
 // Apply styles to each button
-for (const button of [askButton,correctBtn, translateBtn, explainBtn, defineBtn,removeButton]) {
+for (const button of [askButton, correctBtn, translateBtn, explainBtn, defineBtn, removeButton]) {
     Object.assign(button.style, buttonStyles);
     devilentLIBS.makeButtonFeedback(button);
 }
@@ -162,6 +149,6 @@ code will display like this:
 this code
 \`\`\`
     `)
-    window.webaiinputview.createMenu( 10000, 300);
+    window.webaiinputview.createMenu(10000, 300);
 
 }, 1000);

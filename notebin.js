@@ -1,3 +1,45 @@
+function getCurrentLineString(element) {
+  const selection = window.getSelection();
+  const range = selection.getRangeAt(0);
+  const node = range.startContainer;
+  const offset = range.startOffset;
+
+  // If the selection is inside a text node
+  if (node.nodeType === Node.TEXT_NODE) {
+    const text = node.textContent;
+    const lineStart = text.lastIndexOf('\n', offset) + 1;
+    const lineEnd = text.indexOf('\n', offset);
+    const line = lineEnd === -1 ? text.slice(lineStart) : text.slice(lineStart, lineEnd);
+    return line;
+  }
+
+  // If the selection is inside an element node
+  const walker = document.createTreeWalker(element, NodeFilter.SHOW_TEXT);
+  let currentNode, currentLine = '';
+
+  while (currentNode = walker.nextNode()) {
+    const text = currentNode.textContent;
+    const lines = text.split('\n');
+
+    for (let i = 0; i < lines.length; i++) {
+      if (range.intersectsNode(currentNode)) {
+        currentLine = lines[i];
+        break;
+      }
+    }
+
+    if (currentLine !== '') {
+      break;
+    }
+  }
+
+  return currentLine;
+}
+
+
+
+
+
 function createLastButton(cmd, name = cmd) {
   const button = document.createElement('button');
 
@@ -12,6 +54,7 @@ function createLastButton(cmd, name = cmd) {
   return button;
 }
 
+let editorContainer=document.querySelector('#notebin_editor');
 window.tuieditor = window.editor = new toastui.Editor({
   el: document.querySelector('#notebin_editor'),
   previewStyle: 'tab',
@@ -107,11 +150,29 @@ document.body.addEventListener('focus', (event) => {
   syncNote();
 });
 
+document.addEventListener('keydown', function(event) {
+  if (event.key === 'Enter' && event.ctrlKey) {
+    // Your code here
+    let currentLineString=getCurrentLineString(editorContainer);
+    console.log('Ctrl + Enter was pressed:',currentLineString);
+    let prompt = ' ';
+    let selectText = window.getSelection().toString();
+    devilentLIBS.displayMarkdown(`${prompt} **${selectText.length >= 1 ? selectText : currentLineString}** ...`);
+    devilentLIBS.leptonSimpleComplete(`${prompt} **${selectText.length >= 1 ? selectText : currentLineString}** `);
+  }
+});
+
 function getUrlParameter(name) {
   name = name.replace(/[\[]/, '\\[').replace(/[\]]/, '\\]');
   var regex = new RegExp('[\\?&]' + name + '=([^&#]*)');
   var results = regex.exec(location.search);
   return results === null ? '' : decodeURIComponent(results[1].replace(/\+/g, ' '));
+}
+
+function setUrlParameter(paramName, paramValue) {
+  const url = new URL(window.location.href);
+  url.searchParams.set(paramName, paramValue);
+  history.pushState({}, "", url);
 }
 
 let noteid = getUrlParameter('noteid');
@@ -120,7 +181,8 @@ console.log(noteid);
 
 
 async function initEditorModel() {
-  editorModel.noteid= getUrlParameter('noteid')
+  editorModel.noteid= getUrlParameter('noteid') || Date.now();
+  setUrlParameter('noteid', editorModel.noteid);
   console.log('initEditorModel',editorModel);
   getNote();
 
@@ -167,11 +229,12 @@ async function saveNote() {
 
 
 async function syncNote(){
-  let res = await fetch(`https://apikey.suisuy.eu.org/get?key=${editorModel.noteid}`);
+  try {
+    let res = await fetch(`https://apikey.suisuy.eu.org/get?key=${editorModel.noteid}`);
   res = await res.json();
   console.log('getNote in syncNote:', res);
   if (res) {
-    if(res.lastChangeTime>=editorModel.lastChangeTime){
+    if(res.lastChangeTime>editorModel.lastChangeTime){
     console.log(res.lastChangeTime,editorModel.lastChangeTime);
     editorModel.value = res.value;
     editorModel.lastChangeTime=res.lastChangeTime || 0;
@@ -182,7 +245,12 @@ async function syncNote(){
       saveNote();
     }
   }
-
+  
+  } catch (error) {
+    console.log('syncNote eroor:',error);
+    saveNote();    
+  }
+  
 }
 
 

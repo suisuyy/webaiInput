@@ -458,6 +458,43 @@ const devilentLIBS = {
     }
     return true;
   },
+  getCurrentLineString(element) {
+    const selection = window.getSelection();
+    const range = selection.getRangeAt(0);
+    const node = range.startContainer;
+    const offset = range.startOffset;
+  
+    // If the selection is inside a text node
+    if (node.nodeType === Node.TEXT_NODE) {
+      const text = node.textContent;
+      const lineStart = text.lastIndexOf('\n', offset) + 1;
+      const lineEnd = text.indexOf('\n', offset);
+      const line = lineEnd === -1 ? text.slice(lineStart) : text.slice(lineStart, lineEnd);
+      return line;
+    }
+  
+    // If the selection is inside an element node
+    const walker = document.createTreeWalker(element, NodeFilter.SHOW_TEXT);
+    let currentNode, currentLine = '';
+  
+    while (currentNode = walker.nextNode()) {
+      const text = currentNode.textContent;
+      const lines = text.split('\n');
+  
+      for (let i = 0; i < lines.length; i++) {
+        if (range.intersectsNode(currentNode)) {
+          currentLine = lines[i];
+          break;
+        }
+      }
+  
+      if (currentLine !== '') {
+        break;
+      }
+    }
+  
+    return currentLine;
+  },
   isEditableElement: function isEditableElement(element) {
     while (element) {
       if (element.contentEditable === "true") {
@@ -1027,7 +1064,7 @@ const devilentLIBS = {
         });
     }
   },
-  async leptonSimpleComplete(userText) {
+  async leptonSimpleComplete(userText,systemPrompt='Be concise') {
     console.log("leptonSimpleComlete(): ", userText);
     if (devilentLIBS.checkValidString(userText) === false) {
       return;
@@ -1042,7 +1079,7 @@ const devilentLIBS = {
           Authorization: `Bearer ${devilentLIBS.config.lepton_api.api_token[0]}`,
         },
         body: JSON.stringify({
-          messages: [{ role: "user", content: userText }],
+          messages: [{ role: "user", content: systemPrompt+ userText }],
           model: appModel.llm_model.name,
           tools: [],
           temperature: 0.7,
