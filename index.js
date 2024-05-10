@@ -48,7 +48,7 @@ const devilentLIBS = {
       },
       autoStop = true
     ) {
-      targetElement=targetElement || document.querySelector(`#whiser_voice_button`);
+      targetElement=targetElement || document.querySelector(`#whisper_voice_button`);
 
       this.stopRecording();
       console.log("start recording");
