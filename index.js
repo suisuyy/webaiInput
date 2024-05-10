@@ -955,7 +955,7 @@ const devilentLIBS = {
 
       container.style.zIndex = "100000";
       container.style.position = "fixed";
-      container.style.bottom = "0";
+      container.style.top = "85vh";
       container.style.left = "0";
       container.style.height = "40vh";
       container.style.width = "80vw";
@@ -963,6 +963,10 @@ const devilentLIBS = {
     }
 
     devilentLIBS.renderMarkdown(mdString, container);
+    let div=document.createElement('div');
+    div.style.height='3000px';
+    container.appendChild(div)
+
   },
   moveElementNearMouse: (mElem, targetElement, alwayInWindow = true, event) => {
     // const rect = targetElement.getBoundingClientRect();
@@ -1344,8 +1348,11 @@ const devilentLIBS = {
       menuContainer.appendChild(closeButton);
 
       createMenuItem("TTS", () => {
+        let currentLineString = devilentLIBS.getCurrentLineString(document.activeElement);
+        let selectText = window.getSelection().toString();
+        let ttstext=selectText.length >= 1 ? selectText : currentLineString;
         devilentLIBS.tts(
-          devilentLIBS.getSelectionText(),
+          ttstext,
           "de-DE-SeraphinaMultilingualNeural"
         );
       });
