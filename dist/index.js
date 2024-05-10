@@ -49,6 +49,8 @@ const devilentLIBS = {
       },
       autoStop = true
     ) {
+      targetElement=targetElement || document.querySelector(`#whiser_voice_button`);
+
       this.stopRecording();
       console.log("start recording");
       return navigator.mediaDevices
@@ -63,7 +65,7 @@ const devilentLIBS = {
           let audioChunks = [];
           mediaRecorder.start();
           this.isRecording = true;
-          targetElement?.style?.backgroundColor = "rgba(173, 216, 230, 0.3)";
+          targetElement.style.backgroundColor = "rgba(173, 216, 230, 0.3)";
 
           // // Audio context for volume analysis
           let volumeInterval;
