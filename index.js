@@ -133,14 +133,13 @@ const devilentLIBS = {
           ) {
             console.error("User denied permission to access audio");
             // Display a notification or perform some other action
-            showNotification("Audio permission denied");
+            console.log("Audio permission denied");
           } else {
             console.error(
               "An error occurred while accessing the audio device",
               error
             );
             // Display a notification or perform some other action
-            showNotification("Error accessing audio device");
           }
         });
     }
