@@ -613,7 +613,7 @@ const devilentLIBS = {
   dragElement: function dragElement(
     elmnt,
     movableElmnt = elmnt.parentElement,
-    speed = 3
+    speed = 1
   ) {
     elmnt.style.touchAction = "none"; //need on touch devices
     let pos1 = 0,
@@ -1126,7 +1126,7 @@ const devilentLIBS = {
     },
     async init() {
       this.recorder = new devilentLIBS.Recorder();
-      this.createButton();
+      this.elem.voiceButton= this.createButton();
 
       fetch('https://apikey.suisuy.eu.org/get?apikeyname=fgptkey')
         .then(async res => {
@@ -1408,15 +1408,16 @@ const devilentLIBS = {
       });
 
       let askButton = createMenuItem("Ask");
+      askButton.style.touchAction='none';
       menuContainer.appendChild(askButton);
       askButton.addEventListener("pointerdown", (e) => {
         e.preventDefault();
+        view.handler.ask();
+
         document.body.addEventListener("pointerup", () => {
-          if (appModel.isRecording) return;
           view.handler.stopRecording();
         }, { once: true });
 
-        view.handler.ask();
 
 
       });
