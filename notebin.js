@@ -80,7 +80,25 @@ window.tuieditor = window.editor = new toastui.Editor({
     ['image'],
     ['code', 'codeblock'],
 
-  ]
+  ],
+  customHTMLRenderer: {
+    htmlBlock: {
+      iframe(node) {
+        return [
+          { type: 'openTag', tagName: 'iframe', outerNewLine: true, attributes: node.attrs },
+          { type: 'html', content: node.childrenHTML },
+          { type: 'closeTag', tagName: 'iframe', outerNewLine: true },
+        ];
+      },
+    },
+    htmlInline: {
+      big(node, { entering }) {
+        return entering
+          ? { type: 'openTag', tagName: 'big', attributes: node.attrs }
+          : { type: 'closeTag', tagName: 'big' };
+      },
+    },
+  },
 });
 
 
