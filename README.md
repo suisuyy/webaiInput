@@ -1,5 +1,5 @@
 # webaiInput
-ai input tool for web, support speech to text for fast input and more
+ai input tool for web, support speech to text for fast input and more, 90% code written by AI (gpt4 and mixtral large)
 
 ![image](https://github.com/suisuyy/webaiInput/assets/50224389/a5629cca-b146-4940-bfdb-5f88e52bfa5e)
 
