@@ -1,5 +1,6 @@
 # webaiInput
-ai input tool for web, support speech to text and more
+ai input tool for web, support speech to text for fast input and more
+
 ![image](https://github.com/suisuyy/webaiInput/assets/50224389/a5629cca-b146-4940-bfdb-5f88e52bfa5e)
 
 
