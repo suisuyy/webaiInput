@@ -1117,7 +1117,7 @@ const devilentLIBS = {
     minimalRecordTime: 2000,
     keepButtonAliveInterval: 0,
     isRecording: false,
-    llm_model: devilentLIBS.config.lepton_api.llm_models.mixtral8x22b
+    llm_model: devilentLIBS.config.lepton_api.llm_models.wizardlm8x22b
   };
 
   let view = {
